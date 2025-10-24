@@ -8,6 +8,19 @@ mkdir -p $DATA_DIR_1S
 
 mkdir -p "./data/reduced"
 
+# We need a SPICE metakernel to pull ephemeris easily
+echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
+git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
+
+echo "Downloading required SPICE files"
+if ! type uv > /dev/null; then
+    python src/make_messenger_metakernel.py
+else
+    uv run python src/make_messenger_metakernel.py
+fi
+
+# Unfortunately the Philpott+ (2020) crossing list cannot be automatically downloaded at this time.
+
 # Download raw data from PDS
 echo "Downloading MESSENGER MAG data from PDS-PPI"
 echo "Download 1 second average data"
@@ -27,16 +40,3 @@ wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2012/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2013/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2014/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2015/"
-
-# Unfortunately the Philpott+ (2020) crossing list cannot be automatically downloaded at this time.
-
-# We need a SPICE metakernel to pull ephemeris easily
-echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
-git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
-
-echo "Downloading required SPICE files"
-if ! type uv > /dev/null; then
-    python src/make_messenger_metakernel.py
-else
-    uv run python src/make_messenger_metakernel.py
-fi
