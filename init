@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+
+# Initialise directories
+DATA_DIR_FULL_CADENCE="./data/messenger/full_cadence/"
+DATA_DIR_1S="./data/messenger/one_minute_avg/"
+mkdir -p $DATA_DIR_FULL_CADENCE
+mkdir -p $DATA_DIR_1S
+
+mkdir -p "./data/reduced"
+
+# Download raw data from PDS
+echo "Downloading MESSENGER MAG data from PDS-PPI"
+echo "Download 1 second average data"
+DATA_URL="https://pds-ppi.igpp.ucla.edu/data/mess-mag-calibrated/data/mso-avg/"
+DATA_DIR=$DATA_DIR_1S
+wget -r -q --show-progress -np -nH -nd -A '*01_V08.TAB' -P $DATA_DIR "$DATA_URL/2011/"
+wget -r -q --show-progress -np -nH -nd -A '*01_V08.TAB' -P $DATA_DIR "$DATA_URL/2012/"
+wget -r -q --show-progress -np -nH -nd -A '*01_V08.TAB' -P $DATA_DIR "$DATA_URL/2013/"
+wget -r -q --show-progress -np -nH -nd -A '*01_V08.TAB' -P $DATA_DIR "$DATA_URL/2014/"
+wget -r -q --show-progress -np -nH -nd -A '*01_V08.TAB' -P $DATA_DIR "$DATA_URL/2015/"
+
+echo "Download full cadence data"
+DATA_URL="https://pds-ppi.igpp.ucla.edu/data/mess-mag-calibrated/data/mso/"
+DATA_DIR=$DATA_DIR_FULL_CADENCE
+wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2011/"
+wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2012/"
+wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2013/"
+wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2014/"
+wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2015/"
+
+# Unfortunately the Philpott+ (2020) crossing list cannot be automatically downloaded at this time.
+
+# We need a SPICE metakernel to pull ephemeris easily
+echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
+git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
+
+echo "Downloading required SPICE files"
+if ! type uv > /dev/null; then
+    python src/make_messenger_metakernel.py
+else
+    uv run python src/make_messenger_metakernel.py
+fi
