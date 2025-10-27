@@ -335,6 +335,7 @@ def process_crossing_interval(inputs):
         earliest_sample_start_before,
         latest_sample_start_after,
         average=None,
+        no_dirs=True,
     )
 
     samples = []
