@@ -297,7 +297,7 @@ def process_crossing_interval(inputs):
     i, crossing_interval = inputs
 
     if crossing_interval["Type"] == "DATA_GAP":
-        raise None  # Ignore labelled data gaps
+        return None  # Ignore labelled data gaps
 
     # We define the eariest possible sample start
     # and latest possible sample end.
