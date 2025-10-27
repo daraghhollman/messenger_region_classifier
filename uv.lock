@@ -219,8 +219,8 @@ wheels = [
 
 [[package]]
 name = "hermpy"
-version = "0.0.2"
-source = { git = "https://github.com/daraghhollman/hermpy#d5d76f15de5cbb7e6b293ba98d577ef5d73f64a6" }
+version = "0.0.3"
+source = { git = "https://github.com/daraghhollman/hermpy#df1597f42af9215fc7388f7028b7ab4136094041" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
