@@ -235,13 +235,14 @@ def get_random_sample(
 
 def get_sample_features(data):
 
-    mean = np.mean([data["|B|"], data["Bx"], data["By"], data["Bz"]], axis=1)
-    median = np.median([data["|B|"], data["Bx"], data["By"], data["Bz"]], axis=1)
-    std = np.std([data["|B|"], data["Bx"], data["By"], data["Bz"]], axis=1)
-    skew = scipy.stats.skew([data["|B|"], data["Bx"], data["By"], data["Bz"]], axis=1)
-    kurtosis = scipy.stats.kurtosis(
-        [data["|B|"], data["Bx"], data["By"], data["Bz"]], axis=1
-    )
+    components = ["|B|", "Bx", "By", "Bz"]
+
+    # Compute per-component stats as dicts
+    mean = {f"Mean {c}": np.mean(data[c]) for c in components}
+    median = {f"Median {c}": np.median(data[c]) for c in components}
+    std = {f"Standard Deviation {c}": np.std(data[c]) for c in components}
+    skew = {f"Skew {c}": scipy.stats.skew(data[c]) for c in components}
+    kurtosis = {f"Kurtosis {c}": scipy.stats.kurtosis(data[c]) for c in components}
 
     data_middle = data.iloc[round(len(data) / 2)]
 
@@ -273,12 +274,13 @@ def get_sample_features(data):
         # Time identifiers
         "Sample Start": data["date"].iloc[0],
         "Sample End": data["date"].iloc[-1],
-        # Parameters
-        "Mean": mean,
-        "Median": median,
-        "Standard Deviation": std,
-        "Skew": skew,
-        "Kurtosis": kurtosis,
+        # Magnetic field statistics
+        **mean,
+        **median,
+        **std,
+        **skew,
+        **kurtosis,
+        # Ephemeris
         "Heliocentric Distance (AU)": heliocentric_distance,
         "Local Time (hrs)": local_time,
         "Latitude (deg.)": latitude,
