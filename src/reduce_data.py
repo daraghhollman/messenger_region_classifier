@@ -29,7 +29,8 @@ from tqdm import tqdm
 # Load boundary crossings
 crossing_intervals = hermpy.boundaries.Load_Crossings(
     str(pathlib.Path(__file__).parent.parent / "data/philpott_2020_crossing_list.xlsx"),
-    include_data_gaps=False,
+    include_data_gaps=True,
+    # Data gaps are included for indexing continuity but ignored in processing.
 )
 
 # Define some parameters about how the samples are drawn
@@ -296,7 +297,7 @@ def process_crossing_interval(inputs):
     i, crossing_interval = inputs
 
     if crossing_interval["Type"] == "DATA_GAP":
-        raise ValueError("Attempting to process a data gap")
+        raise None  # Ignore labelled data gaps
 
     # We define the eariest possible sample start
     # and latest possible sample end.
