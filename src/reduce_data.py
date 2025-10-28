@@ -111,6 +111,13 @@ def main():
 
     process_items = process_items[last_index + 1 :]
 
+    sample_buffers = {
+        "Solar Wind": [],
+        "BS Magnetosheath": [],
+        "MP Magnetosheath": [],
+        "Magnetosphere": [],
+    }
+
     with multiprocessing.Pool(
         int(input(f"Number of cores? __ / {multiprocessing.cpu_count()} "))
     ) as pool:
@@ -123,60 +130,34 @@ def main():
             if not isinstance(samples_taken, list):
                 continue
 
-            # Save samples
             for row in samples_taken:
                 for sample in [row[0], row[1]]:
+                    label = sample["Label"]
 
-                    match sample["Label"]:
-                        case "Solar Wind":
-                            output_file = solar_wind_samples_path
-                        case "BS Magnetosheath":
-                            output_file = bow_shock_magnetosheath_samples_path
-                        case "MP Magnetosheath":
-                            output_file = magnetopause_magnetosheath_samples_path
-                        case "Magnetosphere":
-                            output_file = magenetosphere_samples_path
+                    if label not in sample_buffers:
+                        raise ValueError(f"Unknown sample label: {label}")
 
-                        case _:
-                            raise ValueError(f"Unknown sample label: {sample['Label']}")
-
-                    # If there is no data, only two columns:
-                    # boundary id, and label
-                    # This shouldn't happen!
+                    # If data is missing (only boundary id + label)
                     if len(sample) == 2:
-                        Safely_Append_Row(
-                            output_file, [np.nan] * 14 + list(sample.values())
+                        sample_buffers[label].append(
+                            [np.nan] * 14 + list(sample.values())
                         )
                         continue
 
-                    # If the file doesn't exist, create it
-                    if not os.path.exists(output_file):
-                        os.mknod(output_file)
+                    sample_buffers[label].append(list(sample.values()))
 
-                        """
-                        with open(output_file, "a", newline="") as f:
-                            writer = csv.writer(f)
-                            writer.writerow(list(sample.keys()))
-                        """
-                        Safely_Append_Row(output_file, list(sample.keys()))
+        output_paths = {
+            "Solar Wind": solar_wind_samples_path,
+            "BS Magnetosheath": bow_shock_magnetosheath_samples_path,
+            "MP Magnetosheath": magnetopause_magnetosheath_samples_path,
+            "Magnetosphere": magenetosphere_samples_path,
+        }
 
-                    else:
-                        try:
-                            pd.read_csv(output_file)
-                        except pd.errors.EmptyDataError:
-                            """
-                            with open(output_file, "a", newline="") as f:
-                                writer = csv.writer(f)
-                                writer.writerow(list(sample.keys()))
-                            """
-                            Safely_Append_Row(output_file, list(sample.keys()))
+        for label, rows in sample_buffers.items():
 
-                        """
-                        with open(output_file, "a", newline="") as f:
-                            writer = csv.writer(f)
-                            writer.writerow(sample.values())
-                        """
-                        Safely_Append_Row(output_file, sample.values())
+            output_file = output_paths[label]
+            df = pd.DataFrame(rows)
+            df.to_csv(output_file, index=False)
 
 
 def get_random_sample(
@@ -368,34 +349,3 @@ def process_crossing_interval(inputs):
         samples.append([sample_before, sample_after])
 
     return samples
-
-
-# Some fancy code to enable us to start and stop the script if needed, without losing progress
-def Safely_Append_Row(output_file, sample):
-
-    # Write to a temporary file first.
-    # That way, if there are any corruptions, they won't occur in the main file
-    tmp_file_name = ""
-    with tempfile.NamedTemporaryFile("w", delete=False, newline="") as tmp_file:
-        writer = csv.writer(tmp_file)
-        writer.writerow(sample)
-        tmp_file_name = tmp_file.name
-
-    # Append the temp fiile contents atomically
-    # i.e. the write happens at once, and errors can't occur from partial writes
-    with (
-        open(output_file, "a", newline="") as out_file,
-        open(tmp_file_name, "r") as tmp_file,
-    ):
-        shutil.copyfileobj(tmp_file, out_file)
-
-        # Flush python's buffer and force os to flush file to disk
-        out_file.flush()
-        os.fsync(out_file.fileno())
-
-    # Clean tmp file
-    os.remove(tmp_file.name)
-
-
-if __name__ == "__main__":
-    main()
