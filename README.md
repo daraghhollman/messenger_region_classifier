@@ -18,7 +18,7 @@ Download the required MESSENGER data and SPICE kernels with:
 chmod +x ./init
 ./init
 ```
-This will take some time.
+This will take a long time, and is highly dependent on network and read/write speeds.
 
 ## Running
 
