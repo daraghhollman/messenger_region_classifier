@@ -123,13 +123,6 @@ def main():
                     if label not in sample_buffers:
                         raise ValueError(f"Unknown sample label: {label}")
 
-                    # If data is missing (only boundary id + label)
-                    if len(sample) == 2:
-                        sample_buffers[label].append(
-                            [np.nan] * 14 + list(sample.values())
-                        )
-                        continue
-
                     sample_buffers[label].append(list(sample.values()))
 
         output_paths = {
