@@ -92,24 +92,10 @@ def main():
         if not os.path.exists(file):
             os.mknod(file)
 
-    # If some data is there already, attept to restart
-    try:
-        previous_indices = [
-            pd.read_csv(file).iloc[-1]["Boundary ID"] for file in output_files
-        ]
-        last_index = np.max(previous_indices) + 1
-
-    except pd.errors.EmptyDataError:
-        last_index = -1
-
     # Loop through the crossing intervals and sample around them.
     process_items = [
         (i, crossing_interval) for i, crossing_interval in crossing_intervals.iterrows()
     ]
-
-    print(f"Continuing from crossing id: {last_index + 1}")
-
-    process_items = process_items[last_index + 1 :]
 
     sample_buffers = {
         "Solar Wind": [],
@@ -349,3 +335,7 @@ def process_crossing_interval(inputs):
         samples.append([sample_before, sample_after])
 
     return samples
+
+
+if __name__ == "__main__":
+    main()
