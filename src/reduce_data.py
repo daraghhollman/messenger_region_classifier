@@ -274,7 +274,7 @@ def process_crossing_interval(inputs):
         crossing_interval["End Time"] + search_distance - sample_length
     )
 
-    if i > 0:
+    if i < 16265:
         if latest_sample_start_after > crossing_intervals.loc[i + 1]["Start Time"]:
             latest_sample_start_after = (
                 crossing_intervals.loc[i + 1]["Start Time"] - sample_length
