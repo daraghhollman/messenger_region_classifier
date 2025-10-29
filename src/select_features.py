@@ -79,8 +79,10 @@ def main():
 
     # We train on 10 models, and note the feature importances for each. We save these values to be visualised later. We calculate the average feature importance over all models, and sort them for comparison.
 
-    training_x = all_samples.drop(columns="Label")
-    training_y = all_samples["Label"]
+    training_data = all_samples[features]
+
+    training_x = training_data.drop(columns="Label")
+    training_y = training_data["Label"]
 
     num_models = 10
     model_feature_imporances = []
@@ -106,6 +108,42 @@ def main():
 
     print(ordered_features)
 
+    # We remove non-important features
+
+    # We then save these feature names to file so they can be loaded by future models.
+
+
+# A list of all features
+features = [
+    "Mean |B|",
+    "Mean Bx",
+    "Mean By",
+    "Mean Bz",
+    "Median |B|",
+    "Median Bx",
+    "Median By",
+    "Median Bz",
+    "Standard Deviation |B|",
+    "Standard Deviation Bx",
+    "Standard Deviation By",
+    "Standard Deviation Bz",
+    "Skew |B|",
+    "Skew Bx",
+    "Skew By",
+    "Skew Bz",
+    "Kurtosis |B|",
+    "Kurtosis Bx",
+    "Kurtosis By",
+    "Kurtosis Bz",
+    "Heliocentric Distance (AU)",
+    "Local Time (hrs)",
+    "Latitude (deg.)",
+    "Magnetic Latitude (deg.)",
+    "Mercury Distance (radii)",
+    "X MSM' (radii)",
+    "Y MSM' (radii)",
+    "Z MSM' (radii)",
+]
 
 if __name__ == "__main__":
     main()
