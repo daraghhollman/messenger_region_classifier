@@ -118,7 +118,7 @@ def main():
         print(f"  Accuracy:")
         print(f"    Mean: {np.mean(training_accuracies):.4f}")
         print(f"    StD: {np.std(training_accuracies):.4f}")
-        print(f"  OOB Error:")
+        print(f"  OOB Score:")
         print(f"    Mean: {np.mean(training_oob_scores):.4f}")
         print(f"    StD: {np.std(training_oob_scores):.4f}")
 
@@ -127,8 +127,8 @@ def main():
                 "Feature-set ID": feature_set_id,
                 "Accuracy Mean": np.mean(training_accuracies),
                 "Accuracy StD": np.std(training_accuracies),
-                "OOB Error Mean": np.mean(training_oob_scores),
-                "OOB Error StD": np.mean(training_oob_scores),
+                "OOB Score Mean": np.mean(training_oob_scores),
+                "OOB Score StD": np.mean(training_oob_scores),
             }
         )
 
