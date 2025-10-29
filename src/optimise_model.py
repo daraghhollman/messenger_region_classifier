@@ -142,7 +142,7 @@ def main():
             "" "OOB Score": oob_scores,
             "Training Accuracy": training_accuracies,
         }
-    ).to_csv("./data/metrics/optimisation_metrics.csv")
+    ).to_csv("./data/metrics/optimisation_metrics.csv", index=False)
 
     # With these optimised parameters, we want to train many models and report
     # the training accuracy, oob error, and standard deviations.
