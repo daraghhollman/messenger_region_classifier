@@ -84,14 +84,18 @@ def main():
     # Define an optuna objective
     def objective(trial: optuna.trial.Trial):
 
-        n_estimators = trial.suggest_int("n_estimators", 50, 250)
+        n_estimators = trial.suggest_int("n_estimators", 50, 500)
         max_depth = trial.suggest_int("max_depth", 10, 50)
         max_features = trial.suggest_categorical("max_features", ["sqrt", "log2", None])
+        min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
+        min_samples_leaf = trial.suggest_int("min_samples_leaf", 1, 10)
 
         model_params = {
             "n_estimators": n_estimators,
             "max_depth": max_depth,
             "max_features": max_features,
+            "min_samples_split": min_samples_split,
+            "min_samples_leaf": min_samples_leaf,
             "n_jobs": -1,
             "oob_score": True,
             "random_state": SEED,
