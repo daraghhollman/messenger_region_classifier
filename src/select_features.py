@@ -104,14 +104,13 @@ def main():
 
         model_feature_importances.append(model.feature_importances_)
 
-    model_feature_importances = np.array(model_feature_importances).T
-
     # Save these importances for later visualisation
-    pd.DataFrame({"Feature": features, "Importance": model_feature_importances}).to_csv(
+    pd.DataFrame(model_feature_importances, columns=np.array(features)).to_csv(
         "./data/metrics/feature_importances.csv", index=False
     )
 
     # Find mean and sort
+    model_feature_importances = np.array(model_feature_importances).T
     mean_importances = np.mean(model_feature_importances, axis=1)
     sorted_feature_indices = np.argsort(mean_importances)[::-1]
 
