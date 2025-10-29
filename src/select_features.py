@@ -112,7 +112,7 @@ def main():
     # Find mean and sort
     model_feature_importances = np.array(model_feature_importances).T
     mean_importances = np.mean(model_feature_importances, axis=1)
-    sorted_feature_indices = np.argsort(mean_importances)
+    sorted_feature_indices = np.argsort(mean_importances)[::-1]  # Flip with index
 
     ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
 
