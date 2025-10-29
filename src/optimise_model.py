@@ -133,6 +133,8 @@ def main():
 
         print(f"{i * 10 + 10} trials completed")
         print(f"Best OOB score: {1 - study.best_value}")
+        print("Best parameters thus far:")
+        print(study.best_params)
 
     # Save this score for each iterration
     optimisation_metrics = pd.DataFrame(
