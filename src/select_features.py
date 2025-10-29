@@ -85,7 +85,7 @@ def main():
     # these values to be visualised later. We calculate the average feature
     # importance over all models, and sort them for comparison.
 
-    training_data = all_samples[features + ["Label"]]
+    training_data = all_samples[features + ["Normal Distribution" + "Label"]]
 
     training_x = training_data.drop(columns="Label")
     training_y = training_data["Label"]
