@@ -123,7 +123,7 @@ def main():
                     if label not in sample_buffers:
                         raise ValueError(f"Unknown sample label: {label}")
 
-                    sample_buffers[label].append(list(sample.values()))
+                    sample_buffers[label].append(sample)
 
         output_paths = {
             "Solar Wind": solar_wind_samples_path,
