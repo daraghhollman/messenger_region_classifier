@@ -1,5 +1,8 @@
 """
-Testing perfomance of different feature sets. 6 feature sets are tested and their random forest training accuracy and oob score are recorded in ./data/metrics/feature_selection_metrics.csv for further reference.
+Isolating which features should be included by training multiple random forest
+models with the addition of a feature which randomly samples from a normal
+distriubtion with mean 0 and std 1. Features with average importance less than
+that of the random feature will be marked to be excluded.
 """
 
 import multiprocessing
@@ -74,166 +77,35 @@ def main():
     #                               FEATURE SELECTION                                    #
     ######################################################################################
 
-    # Loop through each feature set, train 10 models and
-    feature_set_metrics = []
-    for feature_set_id in feature_sets.keys():
+    # We train on 10 models, and note the feature importances for each. We save these values to be visualised later. We calculate the average feature importance over all models, and sort them for comparison.
 
-        features = feature_sets[feature_set_id]
+    training_x = all_samples.drop(columns="Label")
+    training_y = all_samples["Label"]
 
-        # Subset data by features
-        training_data = all_samples[features + ["Label"]]
-        training_x = training_data.drop(columns="Label")
-        training_y = training_data["Label"]
+    num_models = 10
+    model_feature_imporances = []
+    for i in range(num_models):
 
-        # At this point there is no need for a training / testing split as we
-        # will use training accuracy, and out-of-bag error to quantify
-        # performance.
-
-        # For each feature set, we will train 10 models, to capture the
-        # variance on the accuracy metrics. If we used the same random state
-        # for each model, we would get the exact same result. Hence, we
-        # increment the seed in the loop.
-        num_models = 10
-        training_accuracies = []
-        training_oob_scores = []
-        for i in range(num_models):
-
-            # Define model with default parameters at this time
-            model = sklearn.ensemble.RandomForestClassifier(
-                n_jobs=n_cores, random_state=SEED + i, oob_score=True
-            )
-
-            # Fit model to training data
-            model.fit(training_x, training_y)
-
-            # Evaluate training performance
-            training_accuracy = model.score(training_x, training_y)
-            oob = model.oob_score_
-
-            training_accuracies.append(training_accuracy)
-            training_oob_scores.append(oob)
-
-        # Print summary
-        print(f"Feature Set: {feature_set_id}")
-        print(f"  Accuracy:")
-        print(f"    Mean: {np.mean(training_accuracies):.4f}")
-        print(f"    StD: {np.std(training_accuracies):.4f}")
-        print(f"  OOB Score:")
-        print(f"    Mean: {np.mean(training_oob_scores):.4f}")
-        print(f"    StD: {np.std(training_oob_scores):.4f}")
-
-        feature_set_metrics.append(
-            {
-                "Feature-set ID": feature_set_id,
-                "Accuracy Mean": np.mean(training_accuracies),
-                "Accuracy StD": np.std(training_accuracies),
-                "OOB Score Mean": np.mean(training_oob_scores),
-                "OOB Score StD": np.mean(training_oob_scores),
-            }
+        # Define model with default parameters at this time
+        model = sklearn.ensemble.RandomForestClassifier(
+            n_jobs=n_cores, random_state=SEED + i
         )
 
-    # Save to csv for later reference
-    pd.DataFrame(feature_set_metrics).to_csv(
-        "./data/metrics/feature_selection_metrics.csv"
-    )
+        # Fit model to training data
+        model.fit(training_x, training_y)
 
+        model_feature_imporances.append(model.feature_importances_)
 
-# Define feature sets
-feature_sets = {
-    "All Features": [
-        "Mean |B|",
-        "Mean Bx",
-        "Mean By",
-        "Mean Bz",
-        "Median |B|",
-        "Median Bx",
-        "Median By",
-        "Median Bz",
-        "Standard Deviation |B|",
-        "Standard Deviation Bx",
-        "Standard Deviation By",
-        "Standard Deviation Bz",
-        "Skew |B|",
-        "Skew Bx",
-        "Skew By",
-        "Skew Bz",
-        "Kurtosis |B|",
-        "Kurtosis Bx",
-        "Kurtosis By",
-        "Kurtosis Bz",
-        "Heliocentric Distance (AU)",
-        "Local Time (hrs)",
-        "Latitude (deg.)",
-        "Magnetic Latitude (deg.)",
-        "Mercury Distance (radii)",
-        "X MSM' (radii)",
-        "Y MSM' (radii)",
-        "Z MSM' (radii)",
-    ],
-    "Reduced Features": [
-        "Mean |B|",
-        "Mean Bx",
-        "Mean By",
-        "Mean Bz",
-        "Median |B|",
-        "Median Bx",
-        "Median By",
-        "Median Bz",
-        "Standard Deviation |B|",
-        "Standard Deviation Bx",
-        "Standard Deviation By",
-        "Standard Deviation Bz",
-        "Heliocentric Distance (AU)",
-        "Local Time (hrs)",
-        "Latitude (deg.)",
-        "Magnetic Latitude (deg.)",
-        "Mercury Distance (radii)",
-        "X MSM' (radii)",
-        "Y MSM' (radii)",
-        "Z MSM' (radii)",
-    ],
-    "No Ephemeris": [
-        "Mean |B|",
-        "Mean Bx",
-        "Mean By",
-        "Mean Bz",
-        "Median |B|",
-        "Median Bx",
-        "Median By",
-        "Median Bz",
-        "Standard Deviation |B|",
-        "Standard Deviation Bx",
-        "Standard Deviation By",
-        "Standard Deviation Bz",
-        "Skew |B|",
-        "Skew Bx",
-        "Skew By",
-        "Skew Bz",
-        "Kurtosis |B|",
-        "Kurtosis Bx",
-        "Kurtosis By",
-        "Kurtosis Bz",
-        "Heliocentric Distance (AU)",
-    ],
-    "Only Mean": [
-        "Mean |B|",
-        "Mean Bx",
-        "Mean By",
-        "Mean Bz",
-    ],
-    "Only Median": [
-        "Median |B|",
-        "Median Bx",
-        "Median By",
-        "Median Bz",
-    ],
-    "Only Standard Deviation": [
-        "Standard Deviation |B|",
-        "Standard Deviation Bx",
-        "Standard Deviation By",
-        "Standard Deviation Bz",
-    ],
-}
+    model_feature_imporances = np.array(model_feature_imporances).T
+
+    # Find mean and sort
+    mean_importances = np.mean(model_feature_imporances, axis=1)
+    sorted_feature_indices = np.argsort(mean_importances)[::-1]
+
+    ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
+
+    print(ordered_features)
+
 
 if __name__ == "__main__":
     main()
