@@ -79,7 +79,7 @@ def main():
 
     # Lets first add a random feature to the data. This feature will sample
     # from a normal distribution with mean 0, and standard deviation 1.
-    all_samples["Normal Distriubtion"] = np.random.normal(size=len(all_samples))
+    all_samples["Normal Distribution"] = np.random.normal(size=len(all_samples))
 
     # We train on 10 models, and note the feature importances for each. We save
     # these values to be visualised later. We calculate the average feature
