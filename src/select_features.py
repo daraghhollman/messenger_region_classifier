@@ -77,7 +77,13 @@ def main():
     #                               FEATURE SELECTION                                    #
     ######################################################################################
 
-    # We train on 10 models, and note the feature importances for each. We save these values to be visualised later. We calculate the average feature importance over all models, and sort them for comparison.
+    # Lets first add a random feature to the data. This feature will sample
+    # from a normal distribution with mean 0, and standard deviation 1.
+    all_samples["Normal Distriubtion"] = np.random.normal(size=len(all_samples))
+
+    # We train on 10 models, and note the feature importances for each. We save
+    # these values to be visualised later. We calculate the average feature
+    # importance over all models, and sort them for comparison.
 
     training_data = all_samples[features + ["Label"]]
 
@@ -100,17 +106,30 @@ def main():
 
     model_feature_imporances = np.array(model_feature_imporances).T
 
+    # Save these importances for later visualisation
+    pd.DataFrame({"Feature": features, "Importance": model_feature_imporances}).to_csv(
+        "./data/metrics/feature_importances.csv", index=False
+    )
+
     # Find mean and sort
     mean_importances = np.mean(model_feature_imporances, axis=1)
     sorted_feature_indices = np.argsort(mean_importances)[::-1]
 
     ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
 
-    print(ordered_features)
-
     # We remove non-important features
+    random_feature_index = ordered_features.index("Normal Distribution")
+
+    remaining_features = ordered_features[:random_feature_index]
+    removed_features = ordered_features[random_feature_index:]
 
     # We then save these feature names to file so they can be loaded by future models.
+    print(f"Removed features: {removed_features}")
+
+    # Save selected features
+    with open("./data/metrics/selected_features.txt", "w") as file:
+        for feature in remaining_features:
+            file.write(feature + "\n")
 
 
 # A list of all features
