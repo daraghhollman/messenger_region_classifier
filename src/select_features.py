@@ -105,9 +105,9 @@ def main():
         model_feature_importances.append(model.feature_importances_)
 
     # Save these importances for later visualisation
-    pd.DataFrame(model_feature_importances, columns=np.array(features)).to_csv(
-        "./data/metrics/feature_importances.csv", index=False
-    )
+    pd.DataFrame(
+        model_feature_importances, columns=np.array(features + ["Normal Distribution"])
+    ).to_csv("./data/metrics/feature_importances.csv", index=False)
 
     # Find mean and sort
     model_feature_importances = np.array(model_feature_importances).T
