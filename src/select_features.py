@@ -91,7 +91,7 @@ def main():
     training_y = training_data["Label"]
 
     num_models = 10
-    model_feature_imporances = []
+    model_feature_importances = []
     for i in range(num_models):
 
         # Define model with default parameters at this time
@@ -102,17 +102,17 @@ def main():
         # Fit model to training data
         model.fit(training_x, training_y)
 
-        model_feature_imporances.append(model.feature_importances_)
+        model_feature_importances.append(model.feature_importances_)
 
-    model_feature_imporances = np.array(model_feature_imporances).T
+    model_feature_importances = np.array(model_feature_importances).T
 
     # Save these importances for later visualisation
-    pd.DataFrame({"Feature": features, "Importance": model_feature_imporances}).to_csv(
+    pd.DataFrame({"Feature": features, "Importance": model_feature_importances}).to_csv(
         "./data/metrics/feature_importances.csv", index=False
     )
 
     # Find mean and sort
-    mean_importances = np.mean(model_feature_imporances, axis=1)
+    mean_importances = np.mean(model_feature_importances, axis=1)
     sorted_feature_indices = np.argsort(mean_importances)[::-1]
 
     ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
