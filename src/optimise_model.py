@@ -93,6 +93,7 @@ def main():
             "max_depth": max_depth,
             "max_features": max_features,
             "n_jobs": -1,
+            "oob_score": True,
             "random_state": SEED,
         }
 
