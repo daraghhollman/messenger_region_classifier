@@ -43,12 +43,14 @@ def main():
         "MP Magnetosheath", "Magnetosheath"
     )
 
-    # Check if there are extreme values in the dataset
-    # extremes = all_samples.loc[
-    #     (all_samples["Mean |B|"] >= 5000)
-    #     | (all_samples["Standard Deviation |B|"] >= 5000)
-    # ]
-    # print(len(extremes))
+    # Check if there are extreme values in the dataset and remove them as these
+    # are either an ICME, or non-physical, neither of which we want to include
+    # in our training.
+    extreme_rows = all_samples.loc[
+        (all_samples["Mean |B|"] >= 5000)
+        | (all_samples["Standard Deviation |B|"] >= 5000)
+    ]
+    all_samples = all_samples.drop(extreme_rows.index)
 
     # Balance classes through undersampling
     smallest_class_length = all_samples["Label"].value_counts().min()
