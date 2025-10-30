@@ -141,14 +141,18 @@ def main():
 
         plt.figure(figsize=(12, 6))
 
-        y_positions = np.arange(features_including_random)  # +1 to include normal dist.
+        y_positions = np.arange(
+            len(features_including_random)
+        )  # +1 to include normal dist.
 
         plt.barh(y_positions, mean_importances, color="white", edgecolor="black")
         sns.boxplot(data=model_feature_importances.T, orient="h", color="indianred")
 
         plt.yticks(y_positions, features_including_random)
 
-        plt.yticks(ticks=np.arange(features_including_random), labels=ordered_features)
+        plt.yticks(
+            ticks=np.arange(len(features_including_random)), labels=ordered_features
+        )
 
         plt.xlabel("Feature Importance")
 
