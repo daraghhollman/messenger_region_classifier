@@ -140,14 +140,16 @@ def main():
 
     # Save model params to be loaded by create_model.py
     with open("./data/model/best_model_params.pkl", "wb") as f:
+        params = study.best_params
+        params.update(
+            {
+                "n_jobs": -1,
+                "oob_score": True,
+                "random_state": SEED,
+            }
+        )
         pickle.dump(
-            study.best_params.update(
-                {
-                    "n_jobs": -1,
-                    "oob_score": True,
-                    "random_state": SEED,
-                }
-            ),
+            params,
             f,
         )
 
