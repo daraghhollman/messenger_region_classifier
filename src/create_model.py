@@ -133,7 +133,7 @@ def main():
         pickle.dump(best_model, f)
 
     # Pickle all model objects and save the rest as a csv
-    with open("./data/models/all_models.pkl", "wb") as f:
+    with open("./data/model/all_models.pkl", "wb") as f:
         pickle.dump(model_data.pop("Model"), f)
 
     pd.DataFrame(model_data).to_csv("./data/model/performance_metrics.csv")
