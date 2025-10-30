@@ -146,7 +146,11 @@ def main():
         )  # +1 to include normal dist.
 
         plt.barh(y_positions, mean_importances, color="white", edgecolor="black")
-        sns.boxplot(data=model_feature_importances.T, orient="h", color="indianred")
+        sns.boxplot(
+            data=model_feature_importances[sorted_feature_indices, :].T,
+            orient="h",
+            color="indianred",
+        )
 
         plt.yticks(y_positions, features_including_random)
 
