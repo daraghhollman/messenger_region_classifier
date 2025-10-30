@@ -139,10 +139,10 @@ def main():
     pd.DataFrame(model_data).to_csv("./data/model/performance_metrics.csv")
 
     print(
-        f"Average OOB Score: {np.mean(model_data["OOB Score"]):.4f} +/- { np.std(model_data["OOB Score"]):.4f }"
+        f"Average OOB Score: {np.mean(model_data["OOB Score"]):.4f} +/- {np.std(model_data["OOB Score"]):.4f}"
     )
     print(
-        f"Average Training Accuracy: {np.mean(model_data["Training Accuracy"]):.4f} +/- { np.std(model_data["Training Accuracy"]):.4f }"
+        f"Average Training Accuracy: {np.mean(model_data["Training Accuracy"]):.4f} +/- {np.std(model_data["Training Accuracy"]):.4f}"
     )
 
 
