@@ -160,6 +160,8 @@ def main():
 
         plt.xlabel("Feature Importance")
 
+        plt.tight_layout()
+
         plt.savefig("./figures/diagnostic/feature_importance.pdf", format="pdf")
 
 
