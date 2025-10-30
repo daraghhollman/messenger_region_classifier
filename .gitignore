@@ -11,3 +11,5 @@ wheels/
 
 # Created directories
 data/
+SPICE/
+figures/
