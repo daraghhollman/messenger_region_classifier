@@ -9,6 +9,8 @@ mkdir -p $DATA_DIR_1S
 mkdir -p "./data/reduced"
 mkdir -p "./data/metrics"
 
+mkdir -p "./figures/diagnostic"
+
 # We need a SPICE metakernel to pull ephemeris easily
 echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
 git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa

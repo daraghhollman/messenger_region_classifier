@@ -7,12 +7,16 @@ that of the random feature will be marked to be excluded.
 
 import multiprocessing
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import sklearn.ensemble
 
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
+
+make_diagnostic_plots = True
 
 
 def main():
@@ -85,7 +89,9 @@ def main():
     # these values to be visualised later. We calculate the average feature
     # importance over all models, and sort them for comparison.
 
-    training_data = all_samples[features + ["Normal Distribution", "Label"]]
+    features_including_random = features + ["Normal Distribution"]
+
+    training_data = all_samples[features_including_random + ["Label"]]
 
     training_x = training_data.drop(columns="Label")
     training_y = training_data["Label"]
@@ -106,13 +112,14 @@ def main():
 
     # Save these importances for later visualisation
     pd.DataFrame(
-        model_feature_importances, columns=np.array(features + ["Normal Distribution"])
+        model_feature_importances, columns=np.array(features_including_random)
     ).to_csv("./data/metrics/feature_importances.csv", index=False)
 
     # Find mean and sort
     model_feature_importances = np.array(model_feature_importances).T
     mean_importances = np.mean(model_feature_importances, axis=1)
     sorted_feature_indices = np.argsort(mean_importances)[::-1]  # Flip with index
+    mean_importances = mean_importances[sorted_feature_indices]
 
     ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
 
@@ -129,6 +136,23 @@ def main():
     with open("./data/metrics/selected_features.txt", "w") as file:
         for feature in remaining_features:
             file.write(feature + "\n")
+
+    if make_diagnostic_plots:
+
+        plt.figure(figsize=(12, 6))
+
+        y_positions = np.arange(features_including_random)  # +1 to include normal dist.
+
+        plt.barh(y_positions, mean_importances, color="white", edgecolor="black")
+        sns.boxplot(data=model_feature_importances.T, orient="h", color="indianred")
+
+        plt.yticks(y_positions, features_including_random)
+
+        plt.yticks(ticks=np.arange(features_including_random), labels=ordered_features)
+
+        plt.xlabel("Feature Importance")
+
+        plt.savefig("./figures/diagnostic/feature_importance.pdf", format="pdf")
 
 
 # A list of all features
