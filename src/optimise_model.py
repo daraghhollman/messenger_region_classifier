@@ -127,7 +127,7 @@ def main():
         return oob_error
 
     # Create optuna study
-    study = optuna.create_study()
+    study = optuna.create_study(sampler=optuna.samplers.TPESampler(seed=SEED))
 
     # Iterratively search for best parameters
     # In practice, we are training many models while varying the parameters,
