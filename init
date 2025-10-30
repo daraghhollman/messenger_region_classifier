@@ -8,6 +8,7 @@ mkdir -p $DATA_DIR_1S
 
 mkdir -p "./data/reduced"
 mkdir -p "./data/metrics"
+mkdir -p "./data/model"
 
 # We need a SPICE metakernel to pull ephemeris easily
 echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"

@@ -149,7 +149,9 @@ def main():
         feature_set_metrics[best_model_index]["Feature-set ID"]
     ]
 
-    print(f"Saving features from set: {best_feature_set}")
+    print(
+        f"Saving features from set: {feature_set_metrics[best_model_index]["Feature-set ID"]}"
+    )
 
     # Save selected features
     with open("./data/model/selected_features.txt", "w") as file:
