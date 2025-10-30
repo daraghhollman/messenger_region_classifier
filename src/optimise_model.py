@@ -4,6 +4,7 @@ Now that we have our feature set selected, we can look at optimising some of the
 
 import multiprocessing
 import pickle
+import sys
 
 import optuna
 import pandas as pd
@@ -11,6 +12,12 @@ import sklearn.ensemble
 
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
+
+if len(sys.argv) > 1:
+    num_trials = int(sys.argv[1])
+
+else:
+    num_trials = 100
 
 
 def main():
@@ -125,7 +132,7 @@ def main():
     # Iterratively search for best parameters
     # In practice, we are training many models while varying the parameters,
     # optimizing for OOB Score.
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=num_trials)
 
     print(f"Best OOB score: {1 - study.best_value}")
     print("Best parameters thus far:")
