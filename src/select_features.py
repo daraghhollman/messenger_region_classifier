@@ -7,16 +7,12 @@ that of the random feature will be marked to be excluded.
 
 import multiprocessing
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import sklearn.ensemble
 
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
-
-make_diagnostic_plots = True
 
 
 def main():
