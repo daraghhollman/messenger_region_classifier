@@ -99,6 +99,7 @@ def main():
         "OOB Score": [],
         "Training Accuracy": [],
     }
+    model_feature_importances = []
     for i in tqdm(range(num_models)):
 
         # We need a different (but fixed) random state for each model to
@@ -119,7 +120,12 @@ def main():
         model_data["OOB Score"].append(oob_score)
         model_data["Training Accuracy"].append(training_accuracy)
 
-    # We want to save feature importance for later visualisation.
+        model_feature_importances.append(model.feature_importances_)
+
+    # Save each model's feature importances for later visualisation
+    pd.DataFrame(model_feature_importances, columns=np.array(features)).to_csv(
+        "./data/model/feature_importances.csv", index=False
+    )
 
     # Pickle best model for further use
     best_model = model_data["Model"][np.argmax(model_data["OOB Score"])]
