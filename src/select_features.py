@@ -81,121 +81,182 @@ def main():
     #                               FEATURE SELECTION                                    #
     ######################################################################################
 
-    # Lets first add a random feature to the data. This feature will sample
-    # from a normal distribution with mean 0, and standard deviation 1.
-    all_samples["Normal Distribution"] = np.random.normal(size=len(all_samples))
+    # Loop through each feature set, train 10 models and
+    feature_set_metrics = []
+    for feature_set_id in feature_sets.keys():
 
-    # We train on 10 models, and note the feature importances for each. We save
-    # these values to be visualised later. We calculate the average feature
-    # importance over all models, and sort them for comparison.
+        features = feature_sets[feature_set_id]
 
-    features_including_random = features + ["Normal Distribution"]
+        # Subset data by features
+        training_data = all_samples[features + ["Label"]]
+        training_x = training_data.drop(columns="Label")
+        training_y = training_data["Label"]
 
-    training_data = all_samples[features_including_random + ["Label"]]
+        # At this point there is no need for a training / testing split as we
+        # will use training accuracy, and out-of-bag error to quantify
+        # performance.
 
-    training_x = training_data.drop(columns="Label")
-    training_y = training_data["Label"]
+        # For each feature set, we will train 10 models, to capture the
+        # variance on the accuracy metrics. If we used the same random state
+        # for each model, we would get the exact same result. Hence, we
+        # increment the seed in the loop.
+        num_models = 10
+        training_accuracies = []
+        oob_scores = []
+        for i in range(num_models):
 
-    num_models = 10
-    model_feature_importances = []
-    for i in range(num_models):
+            # Define model with default parameters at this time
+            model = sklearn.ensemble.RandomForestClassifier(
+                n_jobs=n_cores, random_state=SEED + i, oob_score=True
+            )
 
-        # Define model with default parameters at this time
-        model = sklearn.ensemble.RandomForestClassifier(
-            n_jobs=n_cores, random_state=SEED + i
+            # Fit model to training data
+            model.fit(training_x, training_y)
+
+            # Evaluate training performance
+            training_accuracy = model.score(training_x, training_y)
+            oob = model.oob_score_
+
+            training_accuracies.append(training_accuracy)
+            oob_scores.append(oob)
+
+        # Print summary
+        print(f"Feature Set: {feature_set_id}")
+        print(f"  Accuracy:")
+        print(f"    Mean: {np.mean(training_accuracies):.4f}")
+        print(f"    StD: {np.std(training_accuracies):.4f}")
+        print(f"  OOB Score:")
+        print(f"    Mean: {np.mean(oob_scores):.4f}")
+        print(f"    StD: {np.std(oob_scores):.4f}")
+
+        feature_set_metrics.append(
+            {
+                "Feature-set ID": feature_set_id,
+                "Accuracy Mean": np.mean(training_accuracies),
+                "Accuracy StD": np.std(training_accuracies),
+                "OOB Score Mean": np.mean(oob_scores),
+                "OOB Score StD": np.mean(oob_scores),
+            }
         )
 
-        # Fit model to training data
-        model.fit(training_x, training_y)
+    # Save to csv for later reference
+    pd.DataFrame(feature_set_metrics).to_csv(
+        "./data/metrics/feature_selection_metrics.csv"
+    )
 
-        model_feature_importances.append(model.feature_importances_)
+    # Find which feature set had the largest OOB score
+    mean_oob_scores = [metrics["OOB Score Mean"] for metrics in feature_set_metrics]
+    best_model_index = np.argmax(mean_oob_scores)
 
-    # Save these importances for later visualisation
-    pd.DataFrame(
-        model_feature_importances, columns=np.array(features_including_random)
-    ).to_csv("./data/metrics/feature_importances.csv", index=False)
+    # **Guarenteed** a better way to store/access this information
+    best_feature_set = feature_sets[
+        feature_set_metrics[best_model_index]["Feature-set ID"]
+    ]
 
-    # Find mean and sort
-    model_feature_importances = np.array(model_feature_importances).T
-    mean_importances = np.mean(model_feature_importances, axis=1)
-    sorted_feature_indices = np.argsort(mean_importances)[::-1]  # Flip with index
-    mean_importances = mean_importances[sorted_feature_indices]
-
-    ordered_features = [training_x.columns[i] for i in sorted_feature_indices]
-
-    # We remove non-important features
-    random_feature_index = ordered_features.index("Normal Distribution")
-
-    remaining_features = ordered_features[:random_feature_index]
-    removed_features = ordered_features[random_feature_index:]
-
-    # We then save these feature names to file so they can be loaded by future models.
-    print(f"Removed features: {removed_features}")
+    print(f"Saving features from set: {best_feature_set}")
 
     # Save selected features
-    with open("./data/metrics/selected_features.txt", "w") as file:
-        for feature in remaining_features:
+    with open("./data/model/selected_features.txt", "w") as file:
+        for feature in best_feature_set:
             file.write(feature + "\n")
 
-    if make_diagnostic_plots:
 
-        plt.figure(figsize=(12, 6))
-
-        y_positions = np.arange(
-            len(features_including_random)
-        )  # +1 to include normal dist.
-
-        plt.barh(y_positions, mean_importances, color="white", edgecolor="black")
-        sns.boxplot(
-            data=model_feature_importances[sorted_feature_indices, :].T,
-            orient="h",
-            color="indianred",
-        )
-
-        plt.yticks(y_positions, features_including_random)
-
-        plt.yticks(
-            ticks=np.arange(len(features_including_random)), labels=ordered_features
-        )
-
-        plt.xlabel("Feature Importance")
-
-        plt.tight_layout()
-
-        plt.savefig("./figures/diagnostic/feature_importance.pdf", format="pdf")
-
-
-# A list of all features
-features = [
-    "Mean |B|",
-    "Mean Bx",
-    "Mean By",
-    "Mean Bz",
-    "Median |B|",
-    "Median Bx",
-    "Median By",
-    "Median Bz",
-    "Standard Deviation |B|",
-    "Standard Deviation Bx",
-    "Standard Deviation By",
-    "Standard Deviation Bz",
-    "Skew |B|",
-    "Skew Bx",
-    "Skew By",
-    "Skew Bz",
-    "Kurtosis |B|",
-    "Kurtosis Bx",
-    "Kurtosis By",
-    "Kurtosis Bz",
-    "Heliocentric Distance (AU)",
-    "Local Time (hrs)",
-    "Latitude (deg.)",
-    "Magnetic Latitude (deg.)",
-    "Mercury Distance (radii)",
-    "X MSM' (radii)",
-    "Y MSM' (radii)",
-    "Z MSM' (radii)",
-]
+# Define feature sets to explore
+feature_sets = {
+    "All Features": [
+        "Mean |B|",
+        "Mean Bx",
+        "Mean By",
+        "Mean Bz",
+        "Median |B|",
+        "Median Bx",
+        "Median By",
+        "Median Bz",
+        "Standard Deviation |B|",
+        "Standard Deviation Bx",
+        "Standard Deviation By",
+        "Standard Deviation Bz",
+        "Skew |B|",
+        "Skew Bx",
+        "Skew By",
+        "Skew Bz",
+        "Kurtosis |B|",
+        "Kurtosis Bx",
+        "Kurtosis By",
+        "Kurtosis Bz",
+        "Heliocentric Distance (AU)",
+        "Local Time (hrs)",
+        "Latitude (deg.)",
+        "Magnetic Latitude (deg.)",
+        "Mercury Distance (radii)",
+        "X MSM' (radii)",
+        "Y MSM' (radii)",
+        "Z MSM' (radii)",
+    ],
+    "Reduced Features": [
+        "Mean |B|",
+        "Mean Bx",
+        "Mean By",
+        "Mean Bz",
+        "Median |B|",
+        "Median Bx",
+        "Median By",
+        "Median Bz",
+        "Standard Deviation |B|",
+        "Standard Deviation Bx",
+        "Standard Deviation By",
+        "Standard Deviation Bz",
+        "Heliocentric Distance (AU)",
+        "Local Time (hrs)",
+        "Latitude (deg.)",
+        "Magnetic Latitude (deg.)",
+        "Mercury Distance (radii)",
+        "X MSM' (radii)",
+        "Y MSM' (radii)",
+        "Z MSM' (radii)",
+    ],
+    "No Ephemeris": [
+        "Mean |B|",
+        "Mean Bx",
+        "Mean By",
+        "Mean Bz",
+        "Median |B|",
+        "Median Bx",
+        "Median By",
+        "Median Bz",
+        "Standard Deviation |B|",
+        "Standard Deviation Bx",
+        "Standard Deviation By",
+        "Standard Deviation Bz",
+        "Skew |B|",
+        "Skew Bx",
+        "Skew By",
+        "Skew Bz",
+        "Kurtosis |B|",
+        "Kurtosis Bx",
+        "Kurtosis By",
+        "Kurtosis Bz",
+        "Heliocentric Distance (AU)",
+    ],
+    "Only Mean": [
+        "Mean |B|",
+        "Mean Bx",
+        "Mean By",
+        "Mean Bz",
+    ],
+    "Only Median": [
+        "Median |B|",
+        "Median Bx",
+        "Median By",
+        "Median Bz",
+    ],
+    "Only Standard Deviation": [
+        "Standard Deviation |B|",
+        "Standard Deviation Bx",
+        "Standard Deviation By",
+        "Standard Deviation Bz",
+    ],
+}
 
 if __name__ == "__main__":
     main()
