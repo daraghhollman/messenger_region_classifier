@@ -3,8 +3,8 @@ Now that we have our feature set selected, we can look at optimising some of the
 """
 
 import multiprocessing
+import pickle
 
-import numpy as np
 import optuna
 import pandas as pd
 import sklearn.ensemble
@@ -77,6 +77,12 @@ def main():
 
     # We optimise some hyperparameters using the optuna library
 
+    # Load selected features from ./src/select_features.py
+    features = []
+    with open("./data/model/selected_features.txt", "r") as f:
+        for line in f:
+            features.append(line.strip())
+
     training_data = all_samples[features + ["Label"]]
     training_x = training_data.drop(columns="Label")
     training_y = training_data["Label"]
@@ -88,14 +94,12 @@ def main():
         max_depth = trial.suggest_int("max_depth", 10, 50)
         max_features = trial.suggest_categorical("max_features", ["sqrt", "log2", None])
         min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
-        min_samples_leaf = trial.suggest_int("min_samples_leaf", 1, 10)
 
         model_params = {
             "n_estimators": n_estimators,
             "max_depth": max_depth,
             "max_features": max_features,
             "min_samples_split": min_samples_split,
-            "min_samples_leaf": min_samples_leaf,
             "n_jobs": -1,
             "oob_score": True,
             "random_state": SEED,
@@ -118,68 +122,32 @@ def main():
     # Create optuna study
     study = optuna.create_study()
 
-    # Iterratively search for best parameters so that we can plot this later
-    oob_scores = []
-    training_accuracies = []
-    trials_ellapsed = []
-    n_steps = 10
-    for i in range(n_steps):
-        study.optimize(objective, n_trials=10)
+    # Iterratively search for best parameters
+    # In practice, we are training many models while varying the parameters,
+    # optimizing for OOB Score.
+    study.optimize(objective, n_trials=100)
 
-        trials_ellapsed.append(i * 10 + 10)
-        oob_scores.append(1 - study.best_value)
-        training_accuracies.append(
-            # We record the maxmimum training accuracy as the trials continue
-            np.max(
-                np.array([t.user_attrs.get("training_accuracy") for t in study.trials])
-            )
+    print(f"Best OOB score: {1 - study.best_value}")
+    print("Best parameters thus far:")
+    print(study.best_params)
+
+    # Save model params to be loaded by create_model.py
+    with open("./data/model/best_model_params.pkl", "wb") as f:
+        pickle.dump(
+            study.best_params.update(
+                {
+                    "n_jobs": -1,
+                    "oob_score": True,
+                    "random_state": SEED,
+                }
+            ),
+            f,
         )
-
-        print(f"{i * 10 + 10} trials completed")
-        print(f"Best OOB score: {1 - study.best_value}")
-        print("Best parameters thus far:")
-        print(study.best_params)
-
-    # Save this score for each iterration
-    optimisation_metrics = pd.DataFrame(
-        {
-            "" "OOB Score": oob_scores,
-            "Training Accuracy": training_accuracies,
-        }
-    ).to_csv("./data/metrics/optimisation_metrics.csv", index=False)
 
     # With these optimised parameters, we want to train many models and report
     # the training accuracy, oob error, and standard deviations.
+    # This will be done in another script
 
-    # num_models = 30  # This choice is somewhat arbitrary. Reviewers recommended between 30-50 models
-    #
-    # for model_index in range(num_models):
-    #     pass
-
-
-# Define the chosen feature set
-features = [
-    "Mean |B|",
-    "Mean Bx",
-    "Mean By",
-    "Mean Bz",
-    "Median |B|",
-    "Median Bx",
-    "Median By",
-    "Median Bz",
-    "Standard Deviation |B|",
-    "Standard Deviation Bx",
-    "Standard Deviation By",
-    "Standard Deviation Bz",
-    "Heliocentric Distance (AU)",
-    "Local Time (hrs)",
-    "Latitude (deg.)",
-    "Magnetic Latitude (deg.)",
-    "Mercury Distance (radii)",
-    "X MSM' (radii)",
-    "Y MSM' (radii)",
-    "Z MSM' (radii)",
-]
 
 if __name__ == "__main__":
     main()
