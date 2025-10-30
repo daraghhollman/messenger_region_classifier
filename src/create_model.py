@@ -9,6 +9,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import sklearn.ensemble
+from tqdm import tqdm
 
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
@@ -98,7 +99,7 @@ def main():
         "OOB Score": [],
         "Training Accuracy": [],
     }
-    for i in range(num_models):
+    for i in tqdm(range(num_models)):
 
         # We need a different (but fixed) random state for each model to
         # measure variance. To do this, we increment the initial fixed seed of
@@ -118,6 +119,8 @@ def main():
         model_data["OOB Score"].append(oob_score)
         model_data["Training Accuracy"].append(training_accuracy)
 
+    # We want to save feature importance for later visualisation.
+
     # Pickle best model for further use
     best_model = model_data["Model"][np.argmax(model_data["OOB Score"])]
     with open("./data/model/messenger_region_classifier.pkl", "wb") as f:
@@ -128,6 +131,13 @@ def main():
         pickle.dump(model_data.pop("Model"), f)
 
     pd.DataFrame(model_data).to_csv("./data/model/performance_metrics.csv")
+
+    print(
+        f"Average OOB Score: {np.mean(model_data["OOB Score"]):.4f} +/- { np.std(model_data["OOB Score"]):.4f }"
+    )
+    print(
+        f"Average Training Accuracy: {np.mean(model_data["Training Accuracy"]):.4f} +/- { np.std(model_data["Training Accuracy"]):.4f }"
+    )
 
 
 if __name__ == "__main__":
