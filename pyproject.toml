@@ -20,3 +20,8 @@ dependencies = [
 
 [tool.uv.sources]
 hermpy = { git = "https://github.com/daraghhollman/hermpy" }
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+]
