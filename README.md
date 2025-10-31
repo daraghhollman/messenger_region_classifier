@@ -69,7 +69,7 @@ We utilise the Python package [Optuna](https://optuna.org/) hyperparameter selec
 uv run src/create_model.py
 ```
 
-Trains 50 independent random forest models with the optimised parameters and selected features. Training accuracy, OOB score, and impurity-based feature importance are recorded for each. The best performing model (highest mean OOB score) is saved to use in applications.
+Trains 30 independent random forest models with the optimised parameters and selected features. Training accuracy, OOB score, and impurity-based feature importance are recorded for each. The best performing model (highest mean OOB score) is saved to use in applications.
 
 
 ### Model Applications
