@@ -6,6 +6,7 @@ probabilities for those times.
 
 import datetime as dt
 import multiprocessing
+import pathlib
 import pickle
 
 import hermpy.mag
@@ -18,6 +19,17 @@ from reduce_data import get_sample_features
 
 
 def main():
+
+    # Set up data directories
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
+        pathlib.Path(__file__).parent.parent / "data" / "messenger" / "full_cadence"
+    )
+    hermpy.utils.User.METAKERNEL = str(
+        pathlib.Path(__file__).parent.parent
+        / "SPICE"
+        / "messenger"
+        / "metakernel_messenger.txt"
+    )
 
     start_time = dt.datetime(2013, 1, 1)
     end_time = dt.datetime(2013, 1, 1, 1)
