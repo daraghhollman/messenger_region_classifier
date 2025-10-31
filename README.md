@@ -20,8 +20,8 @@ The required Philpott+ (2020) boundary crossing intervals list is not available 
 Download the required MESSENGER data and SPICE kernels with:
 (requires [wget](https://www.gnu.org/software/wget/))
 ```shell
-chmod +x ./init
-./init
+chmod +x ./scripts/init
+./scripts/init
 ```
 This will take a long time, and is highly dependent on network and read/write speeds.
 
@@ -30,8 +30,8 @@ This will take a long time, and is highly dependent on network and read/write sp
 We include a shell script to run through each of these steps, if you'd like to leave the code run unattended, and inspect the result afterwards.
 
 ```shell
-chmod +x ./run_all
-./run_all
+chmod +x ./scripts/run_all
+./scripts/run_all
 ```
 
 ### Data Reduction

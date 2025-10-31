@@ -10,16 +10,8 @@ mkdir -p "./data/reduced"
 mkdir -p "./data/metrics"
 mkdir -p "./data/model"
 
-# We need a SPICE metakernel to pull ephemeris easily
-echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
-git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
-
-echo "Downloading required SPICE files"
-if ! type uv > /dev/null; then
-    python src/make_messenger_metakernel.py
-else
-    uv run python src/make_messenger_metakernel.py
-fi
+# Make metakernel
+./scripts/make_messenger_metakernel
 
 # Unfortunately the Philpott+ (2020) crossing list cannot be automatically downloaded at this time.
 

@@ -1,0 +1,12 @@
+#!/usr/bin/bash
+
+# We need a SPICE metakernel to pull ephemeris easily
+echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
+git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
+
+echo "Downloading required SPICE files"
+if command -v uv > /dev/null; then
+    uv run python src/make_messenger_metakernel.py
+else
+    python src/make_messenger_metakernel.py
+fi
