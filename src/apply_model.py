@@ -58,6 +58,8 @@ def get_magnetospheric_region(
         pd.DataFrame(data_samples)[model.feature_names_in_]
     )
 
+    return class_probabilities
+
 
 def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
 
