@@ -90,10 +90,12 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
         global_data = data
 
     # Iterrate through each time window
-    with multiprocessing.Pool(initializer=init_worker, initargs=(data)) as pool:
+    with multiprocessing.Pool(initializer=init_worker, initargs=(data,)) as pool:
 
         for window_features in tqdm(
-            pool.imap(get_window_features, time_windows), desc="Calculating features"
+            pool.imap(get_window_features, time_windows),
+            total=len(time_windows),
+            desc="Calculating features",
         ):
 
             # We need to be able to handle missing data
