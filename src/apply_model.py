@@ -13,6 +13,7 @@ import hermpy.mag
 import hermpy.utils
 import numpy as np
 import pandas as pd
+import sklearn.ensemble
 from tqdm import tqdm
 
 from reduce_data import get_sample_features
@@ -47,13 +48,15 @@ def get_magnetospheric_region(
 
     # Load model
     with open(model_path, "rb") as f:
-        model = pickle.load(f)
+        model: sklearn.ensemble.RandomForestClassifier = pickle.load(f)
 
     data_samples, is_data_missing = reduce_data(start_time, end_time)
 
     # Initialise array of probabilities as nan
     class_probabilities = np.full((len(is_data_missing), 3), np.nan)
-    class_probabilities[~is_data_missing, :] = model.predict_proba(data_samples)
+    class_probabilities[~is_data_missing, :] = model.predict_proba(
+        pd.DataFrame(data_samples)[model.feature_names_in_]
+    )
 
 
 def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
