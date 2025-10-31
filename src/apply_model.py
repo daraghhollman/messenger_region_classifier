@@ -20,6 +20,9 @@ from reduce_data import get_sample_features
 
 
 def main():
+    """
+    An example of how you can setup data directories and call get_magnetospheric_region() for any time range
+    """
 
     # Set up data directories
     hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(

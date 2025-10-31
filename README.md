@@ -73,3 +73,9 @@ Trains 30 independent random forest models with the optimised parameters and sel
 
 
 ### Model Applications
+
+```shell
+uv run src/apply_model.py
+```
+
+Contains function `get_magnetospheric_region()` along with an example in `main()` of how to set up data directories and run for any time range.
