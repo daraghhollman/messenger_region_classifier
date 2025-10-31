@@ -64,6 +64,7 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
         start_time,
         end_time,
         average=None,
+        no_dirs=True,
     )
 
     # Determine time windows for each sample to be classified
