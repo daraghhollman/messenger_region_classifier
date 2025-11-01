@@ -38,7 +38,9 @@ def main():
     start_time = dt.datetime(2013, 1, 1)
     end_time = dt.datetime(2013, 1, 1, 1)
 
-    probabilities = get_magnetospheric_region(start_time, end_time)
+    classification_times, probabilities = get_magnetospheric_region(
+        start_time, end_time
+    )
 
     print(probabilities)
 
@@ -53,7 +55,9 @@ def get_magnetospheric_region(
     with open(model_path, "rb") as f:
         model: sklearn.ensemble.RandomForestClassifier = pickle.load(f)
 
-    data_samples, is_data_missing = reduce_data(start_time, end_time)
+    classification_times, data_samples, is_data_missing = reduce_data(
+        start_time, end_time
+    )
 
     # Initialise array of probabilities as nan
     class_probabilities = np.full((len(is_data_missing), 3), np.nan)
@@ -61,7 +65,7 @@ def get_magnetospheric_region(
         pd.DataFrame(data_samples)[model.feature_names_in_]
     )
 
-    return class_probabilities
+    return classification_times, class_probabilities
 
 
 def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
@@ -90,6 +94,8 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
         )
     ]
 
+    classification_times = [t1 + (t2 - t1) / 2 for t1, t2 in time_windows]
+
     samples: list[dict] = []
     is_data_missing: list[bool] = []
 
@@ -117,7 +123,7 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
     if len(samples) == 0:
         raise ValueError("No data for provided time range")
 
-    return samples, np.array(is_data_missing)
+    return classification_times, samples, np.array(is_data_missing)
 
 
 def get_window_features(time_windows):
