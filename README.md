@@ -9,7 +9,7 @@ only.
 
 You can quickly test out this model with the Python notebook included below:
 
-[Run a quick example](./examples/minimal_application_example.ipynb)
+[![Open in colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/daraghhollman/messenger_region_classifier/blob/main/examples/minimal_application_example.ipynb)
 
 
 ## Reproduce this work
