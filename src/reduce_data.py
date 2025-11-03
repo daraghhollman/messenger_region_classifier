@@ -26,13 +26,6 @@ from tqdm import tqdm
 
 # GLOBALS
 
-# Load boundary crossings
-crossing_intervals = hermpy.boundaries.Load_Crossings(
-    str(pathlib.Path(__file__).parent.parent / "data/philpott_2020_crossing_list.xlsx"),
-    include_data_gaps=True,
-    # Data gaps are included for indexing continuity but ignored in processing.
-)
-
 # Define some parameters about how the samples are drawn
 sample_length = dt.timedelta(
     seconds=10
@@ -52,6 +45,16 @@ def main():
         / "SPICE"
         / "messenger"
         / "metakernel_messenger.txt"
+    )
+
+    # Load boundary crossings
+    crossing_intervals = hermpy.boundaries.Load_Crossings(
+        str(
+            pathlib.Path(__file__).parent.parent
+            / "data/philpott_2020_crossing_list.xlsx"
+        ),
+        include_data_gaps=True,
+        # Data gaps are included for indexing continuity but ignored in processing.
     )
 
     # Define output files
@@ -94,7 +97,8 @@ def main():
 
     # Loop through the crossing intervals and sample around them.
     process_items = [
-        (i, crossing_interval) for i, crossing_interval in crossing_intervals.iterrows()
+        (i, crossing_interval, crossing_intervals)
+        for i, crossing_interval in crossing_intervals.iterrows()
     ]
 
     sample_buffers = {
@@ -254,7 +258,7 @@ def get_sample_features(data):
 
 
 def process_crossing_interval(inputs):
-    i, crossing_interval = inputs
+    i, crossing_interval, crossing_intervals = inputs
 
     if crossing_interval["Type"] == "DATA_GAP":
         return None  # Ignore labelled data gaps
