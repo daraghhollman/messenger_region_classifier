@@ -67,6 +67,7 @@ for var, colour in zip(to_plot, mag_colours):
 
 mag_ax.legend()
 mag_ax.set_ylabel("Magnetic Field Stregnth [nT]")
+mag_ax.set_ylim(-100, 100)
 
 labels = ["P(Magnetosheath)", "P(Magnetosphere)", "P(Solar Wind)"]
 region_colours = [
