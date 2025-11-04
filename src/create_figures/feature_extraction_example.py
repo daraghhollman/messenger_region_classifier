@@ -149,9 +149,17 @@ cell_text = [
     ],
 ]
 
-features_table_ax.table(
-    cellText=cell_text, rowLabels=row_labels, colLabels=column_labels, loc="center"
+table = features_table_ax.table(
+    cellText=cell_text,
+    rowLabels=row_labels,
+    colLabels=column_labels,
+    loc="center",
+    cellLoc="center",
 )
+
+# manually set table font size
+table.auto_set_font_size(False)
+table.set_fontsize(24)
 
 # Disable axis frame
 features_table_ax.axis("off")
