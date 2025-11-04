@@ -82,7 +82,7 @@ for key in data_samples.keys():
 
 
 # Plotting
-grid_shape = (4, 2)
+grid_shape = (5, 2)
 time_series_ax = plt.subplot2grid(grid_shape, loc=(0, 0), colspan=2)
 left_distribution_ax = plt.subplot2grid(grid_shape, loc=(1, 0), rowspan=2)
 right_distribution_ax = plt.subplot2grid(
@@ -92,7 +92,7 @@ right_distribution_ax = plt.subplot2grid(
     sharey=left_distribution_ax,
     rowspan=2,
 )
-features_table_ax = plt.subplot2grid(grid_shape, loc=(3, 0), colspan=2)
+features_table_ax = plt.subplot2grid(grid_shape, loc=(3, 0), rowspan=2, colspan=2)
 
 # Time Series Plot
 components = ["|B|", "Bx", "By", "Bz"]
