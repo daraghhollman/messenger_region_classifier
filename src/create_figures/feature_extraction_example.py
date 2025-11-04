@@ -82,6 +82,8 @@ for key in data_samples.keys():
 
 
 # Plotting
+fig = plt.figure(figsize=(5.8, 8.3))
+
 grid_shape = (5, 2)
 time_series_ax = plt.subplot2grid(grid_shape, loc=(0, 0), colspan=2)
 left_distribution_ax = plt.subplot2grid(grid_shape, loc=(1, 0), rowspan=2)
@@ -110,7 +112,7 @@ for var, colour in zip(components, mag_colours):
     )
 
 time_series_ax.legend()
-time_series_ax.set_ylabel("Magnetic Field Stregnth [nT]")
+time_series_ax.set_ylabel("Magnetic Field Strength [nT]")
 
 
 # Distributions
