@@ -131,12 +131,17 @@ for key in data_samples.keys():
             label=var,
         )
 
-column_labels = list(data_samples["Left"]["Features"].keys())
+column_labels = list(data_samples["Left"]["Features"].keys())[2:]
 row_labels = ["Solar Wind Sample", "Magnetosheath Sample"]
 
 cell_text = [
-    [f"{element:.2f}" for element in list(data_samples["Left"]["Features"].values())],
-    [f"{element:.2f}" for element in list(data_samples["Right"]["Features"].values())],
+    # We index these at the 2nd element to remove the time information returned
+    [f"{element:.2f}" for element in list(data_samples["Left"]["Features"].values())][
+        2:
+    ],
+    [f"{element:.2f}" for element in list(data_samples["Right"]["Features"].values())][
+        2:
+    ],
 ]
 
 features_table_ax.table(
