@@ -12,7 +12,7 @@ import hermpy.utils
 import matplotlib.dates
 import matplotlib.pyplot as plt
 
-start_time = dt.datetime(2013, 1, 1, 12)
+start_time = dt.datetime(2013, 2, 1, 12)
 
 orbit_length = dt.timedelta(hours=8)
 end_time = start_time + orbit_length
@@ -85,7 +85,9 @@ for i, (colour, label) in enumerate(zip(region_colours, labels)):
     )
 
 proba_ax.legend()
-proba_ax.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(0))  # Ticks every hour
+proba_ax.xaxis.set_major_locator(
+    matplotlib.dates.HourLocator(interval=2)
+)  # Ticks every second hour
 proba_ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%Y-%m-%d\n%H:%M"))
 proba_ax.set_ylabel("Region Probability")
 
