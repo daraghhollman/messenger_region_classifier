@@ -156,6 +156,7 @@ features_table_ax.table(
 # Disable axis frame
 features_table_ax.axis("off")
 
+plt.tight_layout()
 plt.savefig(
     pathlib.Path(__file__).parent.parent.parent
     / "figures/feature_extraction_example.pdf",
