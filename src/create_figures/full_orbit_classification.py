@@ -12,7 +12,7 @@ import hermpy.utils
 import matplotlib.dates
 import matplotlib.pyplot as plt
 
-start_time = dt.datetime(2013, 2, 1, 12)
+start_time = dt.datetime(2013, 3, 1, 12)
 
 orbit_length = dt.timedelta(hours=8)
 end_time = start_time + orbit_length
