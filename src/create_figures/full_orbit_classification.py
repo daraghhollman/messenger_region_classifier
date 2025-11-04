@@ -63,11 +63,16 @@ mag_colours = [
 ]
 
 for var, colour in zip(to_plot, mag_colours):
-    mag_ax.plot(data["date"], data[var], color=colour, label=var)
+    mag_ax.plot(
+        data["date"],
+        data[var],
+        color=colour,
+        label=var,
+        alpha=1 if var == "|B|" else 0.75,
+    )
 
 mag_ax.legend()
 mag_ax.set_ylabel("Magnetic Field Stregnth [nT]")
-mag_ax.set_ylim(-100, 100)
 
 labels = ["P(Magnetosheath)", "P(Magnetosphere)", "P(Solar Wind)"]
 region_colours = [
@@ -83,6 +88,9 @@ proba_ax.legend()
 proba_ax.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(0))  # Ticks every hour
 proba_ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%Y-%m-%d\n%H:%M"))
 proba_ax.set_ylabel("Region Probability")
+
+for ax in axes:
+    ax.margins(x=0)
 
 fig.savefig(
     pathlib.Path(__file__).parent.parent.parent
