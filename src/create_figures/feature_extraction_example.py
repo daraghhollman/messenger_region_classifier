@@ -127,6 +127,20 @@ for key in data_samples.keys():
             label=var,
         )
 
+column_labels = data_samples["Left"]["Features"].keys()
+row_labels = ["Solar Wind Sample", "Magnetosheath Sample"]
+
+cell_text = [
+    data_samples["Left"]["Features"].values(),
+    data_samples["Right"]["Features"].values(),
+]
+
+features_table_ax.table(
+    cellText=cell_text,
+    rowLabels=row_labels,
+    colLabels=column_labels,
+)
+
 
 plt.savefig(
     pathlib.Path(__file__).parent.parent.parent
