@@ -135,8 +135,8 @@ column_labels = list(data_samples["Left"]["Features"].keys())
 row_labels = ["Solar Wind Sample", "Magnetosheath Sample"]
 
 cell_text = [
-    list(data_samples["Left"]["Features"].values()),
-    list(data_samples["Right"]["Features"].values()),
+    [f"{element:.2f}" for element in list(data_samples["Left"]["Features"].values())],
+    [f"{element:.2f}" for element in list(data_samples["Right"]["Features"].values())],
 ]
 
 features_table_ax.table(
