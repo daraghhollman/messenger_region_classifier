@@ -86,5 +86,5 @@ proba_ax.set_ylabel("Region Probability")
 fig.savefig(
     pathlib.Path(__file__).parent.parent.parent
     / "figures/full_orbit_classification.pdf",
-    fmt="pdf",
+    format="pdf",
 )
