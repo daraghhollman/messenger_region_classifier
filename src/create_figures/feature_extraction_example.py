@@ -140,9 +140,7 @@ cell_text = [
 ]
 
 features_table_ax.table(
-    cellText=cell_text,
-    rowLabels=row_labels,
-    colLabels=column_labels,
+    cellText=cell_text, rowLabels=row_labels, colLabels=column_labels, loc="center"
 )
 
 
