@@ -143,6 +143,11 @@ features_table_ax.table(
     cellText=cell_text, rowLabels=row_labels, colLabels=column_labels, loc="center"
 )
 
+# Disable axis frame
+features_table_ax.axis("off")
+
+# Adjust to make room for the elements
+plt.tight_layout()
 
 plt.savefig(
     pathlib.Path(__file__).parent.parent.parent
