@@ -133,7 +133,10 @@ for key in data_samples.keys():
             label=var,
         )
 
-column_labels = list(data_samples["Left"]["Features"].keys())[2:]
+column_labels = [
+    "\n".join(text.split())
+    for text in list(data_samples["Left"]["Features"].keys())[2:]
+]
 row_labels = ["Solar Wind Sample", "Magnetosheath Sample"]
 
 cell_text = [
@@ -152,9 +155,6 @@ features_table_ax.table(
 
 # Disable axis frame
 features_table_ax.axis("off")
-
-# Adjust to make room for the elements
-plt.tight_layout()
 
 plt.savefig(
     pathlib.Path(__file__).parent.parent.parent
