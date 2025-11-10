@@ -98,7 +98,7 @@ def main():
     def objective(trial: optuna.trial.Trial):
 
         n_estimators = trial.suggest_int("n_estimators", 50, 500)
-        max_depth = trial.suggest_int("max_depth", 10, 50)
+        max_depth = trial.suggest_int("max_depth", 10, 100)
         max_features = trial.suggest_categorical("max_features", ["sqrt", "log2", None])
         min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
 
