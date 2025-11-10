@@ -131,7 +131,7 @@ def main():
                 "Accuracy Mean": np.mean(training_accuracies),
                 "Accuracy StD": np.std(training_accuracies),
                 "OOB Score Mean": np.mean(oob_scores),
-                "OOB Score StD": np.mean(oob_scores),
+                "OOB Score StD": np.std(oob_scores),
             }
         )
 
