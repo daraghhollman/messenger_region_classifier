@@ -44,7 +44,7 @@ def load_reduced_data():
     # Balance classes through undersampling
     smallest_class_length = all_samples["Label"].value_counts().min()
 
-    all_samples = all_samples.groupby("Label").apply(
+    all_samples = all_samples.groupby("Label", sort=False).apply(
         lambda class_data: class_data.sample(n=smallest_class_length, random_state=SEED)
     )
 
