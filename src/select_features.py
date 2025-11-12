@@ -24,7 +24,7 @@ def main():
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
 
-    training_data, _ = load_reduced_data()
+    loaded_training_data, _ = load_reduced_data()
 
     ######################################################################################
     #                               FEATURE SELECTION                                    #
@@ -37,7 +37,7 @@ def main():
         features = feature_sets[feature_set_id]
 
         # Subset data by features
-        training_data = training_data[features + ["Label"]]
+        training_data = loaded_training_data[features + ["Label"]]
         training_x = training_data.drop(columns="Label")
         training_y = training_data["Label"]
 

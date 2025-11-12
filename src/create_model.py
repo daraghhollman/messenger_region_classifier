@@ -23,7 +23,7 @@ def main():
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
 
-    _, test_data = load_reduced_data()
+    _, loaded_test_data = load_reduced_data()
 
     ######################################################################################
     #                               TRAIN AND SAVE MODEL                                 #
@@ -35,7 +35,7 @@ def main():
         for line in f:
             features.append(line.strip())
 
-    test_data = test_data[features + ["Label"]]
+    test_data = loaded_test_data[features + ["Label"]]
     training_x = test_data.drop(columns="Label")
     training_y = test_data["Label"]
 

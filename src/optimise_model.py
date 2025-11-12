@@ -28,7 +28,7 @@ def main():
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
 
-    training_data, _ = load_reduced_data()
+    loaded_training_data, _ = load_reduced_data()
 
     ######################################################################################
     #                                   OPTIMISING MODEL                                 #
@@ -42,7 +42,7 @@ def main():
         for line in f:
             features.append(line.strip())
 
-    training_data = training_data[features + ["Label"]]
+    training_data = loaded_training_data[features + ["Label"]]
     training_x = training_data.drop(columns="Label")
     training_y = training_data["Label"]
 
