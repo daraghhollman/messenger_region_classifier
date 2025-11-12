@@ -23,7 +23,7 @@ def main():
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
 
-    _, loaded_test_data = load_reduced_data()
+    loaded_training_data, loaded_test_data = load_reduced_data()
 
     ######################################################################################
     #                               TRAIN AND SAVE MODEL                                 #
@@ -35,9 +35,13 @@ def main():
         for line in f:
             features.append(line.strip())
 
-    test_data = loaded_test_data[features + ["Label"]]
-    training_x = test_data.drop(columns="Label")
-    training_y = test_data["Label"]
+    training_data = loaded_training_data[features + ["Label"]]
+    training_x = training_data.drop(columns="Label")
+    training_y = training_data["Label"]
+
+    testing_data = loaded_test_data[features + ["Label"]]
+    testing_x = testing_data.drop(columns="Label")
+    testing_y = testing_data["Label"]
 
     # Load best model parameters from file. Generated with ./src/optimise_model.py
     with open("./data/model/best_model_params.pkl", "rb") as f:
@@ -66,11 +70,13 @@ def main():
         # Evaluate performance
         oob_score = model.oob_score_
         training_accuracy = model.score(training_x, training_y)
+        testing_accuracy = model.score(testing_x, testing_y)
 
         model_data["Model Index"].append(i)
         model_data["Model"].append(model)
         model_data["OOB Score"].append(oob_score)
         model_data["Training Accuracy"].append(training_accuracy)
+        model_data["Testing Accuracy"].append(testing_accuracy)
 
         model_feature_importances.append(model.feature_importances_)
 
@@ -95,6 +101,9 @@ def main():
     )
     print(
         f"Average Training Accuracy: {np.mean(model_data["Training Accuracy"]):.4f} +/- {np.std(model_data["Training Accuracy"]):.4f}"
+    )
+    print(
+        f"Average Testing Accuracy: {np.mean(model_data["Testing Accuracy"]):.4f} +/- {np.std(model_data["Testing Accuracy"]):.4f}"
     )
 
 
