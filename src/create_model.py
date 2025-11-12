@@ -77,7 +77,11 @@ def main():
 
         # Evaluate confusion matrix for testing data
         y_predictions = model.predict(testing_x)
-        confusion_matrix = sklearn.metrics.confusion_matrix(testing_y, y_predictions)
+        confusion_matrix = sklearn.metrics.confusion_matrix(
+            testing_y,
+            y_predictions,
+            labels=["Solar Wind", "Magnetosheath", "Magnetosphere"],
+        )
 
         model_data["Model Index"].append(i)
         model_data["Model"].append(model)
