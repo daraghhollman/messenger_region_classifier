@@ -9,6 +9,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import sklearn.ensemble
+import sklearn.metrics
 from tqdm import tqdm
 
 from load_data import load_reduced_data
@@ -54,8 +55,10 @@ def main():
         "Model": [],
         "OOB Score": [],
         "Training Accuracy": [],
+        "Testing Accuracy": [],
+        "Confusion Matrices": [],
+        "Feature Importances": [],
     }
-    model_feature_importances = []
     for i in tqdm(range(num_models)):
 
         # We need a different (but fixed) random state for each model to
@@ -72,27 +75,35 @@ def main():
         training_accuracy = model.score(training_x, training_y)
         testing_accuracy = model.score(testing_x, testing_y)
 
+        # Evaluate confusion matrix for testing data
+        y_predictions = model.predict(testing_x)
+        confusion_matrix = sklearn.metrics.confusion_matrix(testing_y, y_predictions)
+
         model_data["Model Index"].append(i)
         model_data["Model"].append(model)
         model_data["OOB Score"].append(oob_score)
         model_data["Training Accuracy"].append(training_accuracy)
         model_data["Testing Accuracy"].append(testing_accuracy)
-
-        model_feature_importances.append(model.feature_importances_)
+        model_data["Feature Importances"].append(model.feature_importances_)
+        model_data["Confusion Matrices"].append(confusion_matrix)
 
     # Save each model's feature importances for later visualisation
-    pd.DataFrame(model_feature_importances, columns=np.array(features)).to_csv(
-        "./data/model/feature_importances.csv", index=False
-    )
+    pd.DataFrame(
+        model_data.pop("Feature Importances"), columns=np.array(features)
+    ).to_csv("./data/model/feature_importances.csv", index=False)
 
     # Pickle best model for further use
     best_model = model_data["Model"][np.argmax(model_data["OOB Score"])]
     with open("./data/model/messenger_region_classifier.pkl", "wb") as f:
         pickle.dump(best_model, f)
 
-    # Pickle all model objects and save the rest as a csv
+    # Pickle all model objects
     with open("./data/model/all_models.pkl", "wb") as f:
         pickle.dump(model_data.pop("Model"), f)
+
+    # Pickle all confusion matrix arrays
+    with open("./data/model/confusion_matrices.pkl", "wb") as f:
+        pickle.dump(model_data.pop("Confusion Matrices"), f)
 
     pd.DataFrame(model_data).to_csv("./data/model/performance_metrics.csv")
 
