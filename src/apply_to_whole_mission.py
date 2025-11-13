@@ -42,10 +42,12 @@ def main():
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
     # Load model
+    print("Loading model...")
     with open("./data/model/messenger_region_classifier.pkl", "rb") as f:
         model: sklearn.ensemble.RandomForestClassifier = pickle.load(f)
 
     # Load crossing intervals
+    print("Loading intervals...")
     crossing_intervals = hermpy.boundaries.Load_Crossings(
         "./data/philpott_2020_crossing_list.xlsx", include_data_gaps=True
     )
@@ -61,12 +63,17 @@ def main():
     # Similarly, we never expect to see BS_OUT closely followed by any MP crossing.
     # If we do, it means we can't treat them as a pair, and must instead move
     # individually.
+    print("Pairing crossing intervals where possible...")
     crossing_interval_groups = pair_crossing_intervals(crossing_intervals)
 
     # To have a very informative progress bar, we flatten all tasks to the data
     # sample level, rather than the crossing interval level.
     processes = []
-    for crossing_interval_group in crossing_interval_groups:
+    for crossing_interval_group in tqdm(
+        crossing_interval_groups,
+        desc="Creating process items",
+        total=len(crossing_interval_groups),
+    ):
         group_is_pair = len(crossing_interval_group) != 1
         if group_is_pair:
             data_start_time = (
