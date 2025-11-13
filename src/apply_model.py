@@ -63,8 +63,6 @@ def get_magnetospheric_region(
 
 def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
 
-    print(hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"])
-
     # Load data within range
     data = hermpy.mag.Load_Between_Dates(
         hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"],
