@@ -25,9 +25,7 @@ def main():
     """
 
     # Set up data directories
-    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
-        pathlib.Path(__file__).parent.parent / "data" / "messenger" / "full_cadence"
-    )
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
     hermpy.utils.User.METAKERNEL = str(
         pathlib.Path(__file__).parent.parent
         / "SPICE"
@@ -69,6 +67,8 @@ def get_magnetospheric_region(
 
 
 def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
+
+    print(hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"])
 
     # Load data within range
     data = hermpy.mag.Load_Between_Dates(
