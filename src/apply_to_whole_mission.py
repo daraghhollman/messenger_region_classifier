@@ -18,7 +18,7 @@ import pandas as pd
 import sklearn.ensemble
 from tqdm import tqdm
 
-from apply_model import get_magnetospheric_region, get_window_features
+from apply_model import get_window_features
 
 # Application parameters, these match what was used in the training process.
 data_window_size = 10  # seconds
@@ -32,7 +32,7 @@ interval_time_buffer = dt.timedelta(minutes=10)
 def main():
 
     if len(sys.argv) != 1:
-        n_jobs = sys.argv[1]
+        n_jobs = int(sys.argv[1])
 
     else:
         n_jobs = joblib.cpu_count() / 4
@@ -111,7 +111,14 @@ def main():
 
         # Add each time window as a task with its group identifier
         for time_window in time_windows:
-            processes.append((time_window, data))
+            window_data = data.loc[data["date"].between(*time_window)]
+            processes.append((time_window, window_data))
+
+    # Chunking these processes may yield better performance.
+    chunk_size = 100
+    processes = [
+        processes[i : i + chunk_size] for i in range(0, len(processes), chunk_size)
+    ]
 
     with tqdm_joblib(
         tqdm(
