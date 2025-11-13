@@ -5,6 +5,7 @@ Using the utilities created in src/apply_model.py, apply the model to all crossi
 import contextlib
 import datetime as dt
 import pickle
+import sys
 
 import hermpy.boundaries
 import hermpy.utils
@@ -27,7 +28,11 @@ interval_time_buffer = dt.timedelta(minutes=10)
 
 def main():
 
-    n_jobs = -1
+    if len(sys.argv) != 1:
+        n_jobs = sys.argv[1]
+
+    else:
+        n_jobs = joblib.cpu_count() / 4
 
     # Set up data directories
     hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
@@ -63,9 +68,7 @@ def main():
             total=len(crossing_interval_groups),
         )
     ):
-        results = joblib.Parallel(
-            n_jobs=n_jobs, pre_dispatch="1.5*n_jobs", temp_folder="./tmp/"
-        )(
+        results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
             joblib.delayed(get_probabilities_for_group)(group)
             for group in crossing_interval_groups
         )
