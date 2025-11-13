@@ -25,15 +25,8 @@ start_time = dt.datetime(2013, 6, 1, 16)
 end_time = dt.datetime(2013, 6, 1, 16, 20)
 
 # Specify paths for hermpy
-hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
-    pathlib.Path(__file__).parent.parent.parent / "data" / "messenger" / "full_cadence"
-)
-hermpy.utils.User.METAKERNEL = str(
-    pathlib.Path(__file__).parent.parent.parent
-    / "SPICE"
-    / "messenger"
-    / "metakernel_messenger.txt"
-)
+hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
 # Load data
 data = hermpy.mag.Load_Between_Dates(

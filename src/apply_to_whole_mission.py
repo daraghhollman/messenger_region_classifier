@@ -33,15 +33,8 @@ def main():
     n_jobs = -1
 
     # Set up data directories
-    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
-        pathlib.Path(__file__).parent.parent / "data" / "messenger" / "full_cadence"
-    )
-    hermpy.utils.User.METAKERNEL = str(
-        pathlib.Path(__file__).parent.parent
-        / "SPICE"
-        / "messenger"
-        / "metakernel_messenger.txt"
-    )
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+    hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
     # Load model
     with open("./data/model/messenger_region_classifier.pkl", "rb") as f:

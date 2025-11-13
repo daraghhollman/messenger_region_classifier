@@ -37,15 +37,8 @@ search_distance = dt.timedelta(
 
 def main():
 
-    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
-        pathlib.Path(__file__).parent.parent / "data" / "messenger" / "full_cadence"
-    )
-    hermpy.utils.User.METAKERNEL = str(
-        pathlib.Path(__file__).parent.parent
-        / "SPICE"
-        / "messenger"
-        / "metakernel_messenger.txt"
-    )
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+    hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
     # Load boundary crossings
     crossing_intervals = hermpy.boundaries.Load_Crossings(

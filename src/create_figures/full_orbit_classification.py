@@ -19,15 +19,8 @@ end_time = start_time + orbit_length
 
 # Specify paths for hermpy
 # Set up data directories
-hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = str(
-    pathlib.Path(__file__).parent.parent.parent / "data" / "messenger" / "full_cadence"
-)
-hermpy.utils.User.METAKERNEL = str(
-    pathlib.Path(__file__).parent.parent.parent
-    / "SPICE"
-    / "messenger"
-    / "metakernel_messenger.txt"
-)
+hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
 # Load data
 data = hermpy.mag.Load_Between_Dates(
