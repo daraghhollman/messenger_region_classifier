@@ -37,9 +37,6 @@ def main():
         "./data/philpott_2020_crossing_list.xlsx", include_data_gaps=True
     )
 
-    # For now we can just test for a handful of intervals
-    crossing_intervals = crossing_intervals.iloc[:100]
-
     # To ensure no overlap in application to a given crossing interval, we want to
     # classify pairs of crossing intervals as one. i.e. BS_IN and MP_IN, as well as
     # MP_OUT and BS_OUT However, there are sometimes missing crossings, so we need
