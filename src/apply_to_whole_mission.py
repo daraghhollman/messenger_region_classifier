@@ -4,11 +4,9 @@ Using the utilities created in src/apply_model.py, apply the model to all crossi
 
 import contextlib
 import datetime as dt
-import pathlib
 import pickle
 
 import hermpy.boundaries
-import hermpy.mag
 import hermpy.utils
 import joblib
 import numpy as np
@@ -143,6 +141,11 @@ def pair_crossing_intervals(crossing_intervals):
 
 
 def get_probabilities_for_group(crossing_interval_group):
+
+    # These need to be set in here too so that they apply to each individual
+    # worker instance.
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+    hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
     # Check if crossing group is a pair or individual
     group_is_pair = len(crossing_interval_group) != 1
