@@ -10,6 +10,7 @@ import pathlib
 import pickle
 
 import hermpy.mag
+import hermpy.trajectory
 import hermpy.utils
 import numpy as np
 import pandas as pd
@@ -92,26 +93,24 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
     samples: list[dict] = []
     is_data_missing: list[bool] = []
 
-    def init_worker(data):
-        global global_data
-        global_data = data
+    for time_window in time_windows:
+        window_features = get_window_features(time_window, data)
+        if window_features is not None:
+            samples.append(window_features)
+            is_data_missing.append(False)
+        else:
+            is_data_missing.append(True)
 
-    # Iterrate through each time window
-    with multiprocessing.Pool(initializer=init_worker, initargs=(data,)) as pool:
-
-        for window_features in tqdm(
-            pool.imap(get_window_features, time_windows),
-            total=len(time_windows),
-            desc="Calculating features",
-            disable=True,
-        ):
-
-            # We need to be able to handle missing data
-            if window_features is not None:
-                samples.append(window_features)
-                is_data_missing.append(False)
-            else:
-                is_data_missing.append(True)
+    # Calculating heliocentric distance for all the samples at once is much
+    # quicker.
+    sample_mid_times = [
+        s["Sample Start"] + (s["Sample End"] - s["Sample Start"]) for s in samples
+    ]
+    sample_heliocentric_distances = hermpy.utils.Constants.KM_TO_AU(
+        hermpy.trajectory.Get_Heliocentric_Distance(sample_mid_times)
+    )
+    for i, s in enumerate(samples):
+        s["Heliocentric Distance (AU)"] = sample_heliocentric_distances[i]
 
     # Check that we have any samples for this time
     if len(samples) == 0:
@@ -120,9 +119,7 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
     return classification_times, samples, np.array(is_data_missing)
 
 
-def get_window_features(time_windows):
-
-    data = global_data
+def get_window_features(time_windows, data):
 
     # For each time window, get the features of the data within
     window_data = data.loc[data["date"].between(*time_windows)]

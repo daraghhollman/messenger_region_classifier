@@ -221,12 +221,12 @@ def get_sample_features(data):
 
         # It would be quicker to calculate the heliocentric distance for all
         # samples at the end
-        heliocentric_distance = np.sqrt(
-            mercury_position[0] ** 2
-            + mercury_position[1] ** 2
-            + mercury_position[2] ** 2
-        )
-        heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
+        # heliocentric_distance = np.sqrt(
+        #     mercury_position[0] ** 2
+        #     + mercury_position[1] ** 2
+        #     + mercury_position[2] ** 2
+        # )
+        # heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
 
     return {
         # Time identifiers
@@ -239,7 +239,7 @@ def get_sample_features(data):
         **skew,
         **kurtosis,
         # Ephemeris
-        "Heliocentric Distance (AU)": heliocentric_distance,
+        # "Heliocentric Distance (AU)": heliocentric_distance,
         "Local Time (hrs)": local_time,
         "Latitude (deg.)": latitude,
         "Magnetic Latitude (deg.)": magnetic_latitude,

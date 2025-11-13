@@ -2,11 +2,14 @@
 Using the utilities created in src/apply_model.py, apply the model to all crossings, and save the data.
 """
 
+import contextlib
 import datetime as dt
 import pickle
+import sys
 
 import hermpy.boundaries
 import hermpy.utils
+import joblib
 import numpy as np
 import pandas as pd
 import sklearn.ensemble
@@ -24,6 +27,13 @@ interval_time_buffer = dt.timedelta(minutes=10)
 
 
 def main():
+
+    if len(sys.argv) != 1:
+        n_jobs = sys.argv[1]
+
+    else:
+        n_jobs = joblib.cpu_count() / 4
+
     # Set up data directories
     hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
@@ -37,6 +47,9 @@ def main():
         "./data/philpott_2020_crossing_list.xlsx", include_data_gaps=True
     )
 
+    # For now we can just test for a handful of intervals
+    crossing_intervals = crossing_intervals.iloc[:10]
+
     # To ensure no overlap in application to a given crossing interval, we want to
     # classify pairs of crossing intervals as one. i.e. BS_IN and MP_IN, as well as
     # MP_OUT and BS_OUT However, there are sometimes missing crossings, so we need
@@ -47,14 +60,18 @@ def main():
     # individually.
     crossing_interval_groups = pair_crossing_intervals(crossing_intervals)
 
-    results = []
-    for group in tqdm(
-        crossing_interval_groups,
-        desc="Applying model to crossing intervals",
-        dynamic_ncols=True,
-        smoothing=0,
+    with tqdm_joblib(
+        tqdm(
+            desc="Applying model to crossing intervals",
+            dynamic_ncols=True,
+            smoothing=0,
+            total=len(crossing_interval_groups),
+        )
     ):
-        results.append(get_probabilities_for_group(group))
+        results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
+            joblib.delayed(get_probabilities_for_group)(group)
+            for group in crossing_interval_groups
+        )
 
     times, probabilities = zip(*results)  # Unpack results
 
@@ -149,11 +166,27 @@ def get_probabilities_for_group(crossing_interval_group):
         )
         data_end_time = crossing_interval_group[0]["End Time"] + interval_time_buffer
 
-    return get_magnetospheric_region(
-        data_start_time,
-        data_end_time,
-        model_path="./data/model/messenger_region_classifier.pkl",
-    )
+    return get_magnetospheric_region(data_start_time, data_end_time)
+
+
+# "Tracking progress of joblib.Parallel execution"
+# https://stackoverflow.com/questions/24983493/tracking-progress-of-joblib-parallel-execution
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object):
+    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
+
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+        def __call__(self, *args, **kwargs):
+            tqdm_object.update(n=self.batch_size)
+            return super().__call__(*args, **kwargs)
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()
 
 
 if __name__ == "__main__":
