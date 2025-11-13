@@ -68,7 +68,9 @@ def main():
             total=len(crossing_interval_groups),
         )
     ):
-        results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
+        results = joblib.Parallel(
+            n_jobs=n_jobs, pre_dispatch="1*n_jobs", temp_folder="./tmp/"
+        )(
             joblib.delayed(get_probabilities_for_group)(group)
             for group in crossing_interval_groups
         )
