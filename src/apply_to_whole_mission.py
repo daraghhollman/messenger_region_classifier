@@ -2,14 +2,11 @@
 Using the utilities created in src/apply_model.py, apply the model to all crossings, and save the data.
 """
 
-import contextlib
 import datetime as dt
 import pickle
-import sys
 
 import hermpy.boundaries
 import hermpy.utils
-import joblib
 import numpy as np
 import pandas as pd
 import sklearn.ensemble
@@ -27,13 +24,6 @@ interval_time_buffer = dt.timedelta(minutes=10)
 
 
 def main():
-
-    if len(sys.argv) != 1:
-        n_jobs = sys.argv[1]
-
-    else:
-        n_jobs = joblib.cpu_count() / 4
-
     # Set up data directories
     hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
@@ -60,20 +50,14 @@ def main():
     # individually.
     crossing_interval_groups = pair_crossing_intervals(crossing_intervals)
 
-    with tqdm_joblib(
-        tqdm(
-            desc="Applying model to crossing intervals",
-            dynamic_ncols=True,
-            smoothing=0,
-            total=len(crossing_interval_groups),
-        )
+    results = []
+    for group in tqdm(
+        crossing_interval_groups,
+        desc="Applying model to crossing intervals",
+        dynamic_ncols=True,
+        smoothing=0,
     ):
-        results = joblib.Parallel(
-            n_jobs=n_jobs, pre_dispatch="1*n_jobs", temp_folder="./tmp/"
-        )(
-            joblib.delayed(get_probabilities_for_group)(group)
-            for group in crossing_interval_groups
-        )
+        results.append(get_probabilities_for_group(group))
 
     times, probabilities = zip(*results)  # Unpack results
 
@@ -173,26 +157,6 @@ def get_probabilities_for_group(crossing_interval_group):
         data_end_time,
         model_path="./data/model/messenger_region_classifier.pkl",
     )
-
-
-# "Tracking progress of joblib.Parallel execution"
-# https://stackoverflow.com/questions/24983493/tracking-progress-of-joblib-parallel-execution
-@contextlib.contextmanager
-def tqdm_joblib(tqdm_object):
-    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
-
-    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
-        def __call__(self, *args, **kwargs):
-            tqdm_object.update(n=self.batch_size)
-            return super().__call__(*args, **kwargs)
-
-    old_batch_callback = joblib.parallel.BatchCompletionCallBack
-    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
-    try:
-        yield tqdm_object
-    finally:
-        joblib.parallel.BatchCompletionCallBack = old_batch_callback
-        tqdm_object.close()
 
 
 if __name__ == "__main__":
