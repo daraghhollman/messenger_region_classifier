@@ -103,6 +103,7 @@ def reduce_data(start_time: dt.datetime, end_time: dt.datetime):
             pool.imap(get_window_features, time_windows),
             total=len(time_windows),
             desc="Calculating features",
+            disable=True,
         ):
 
             # We need to be able to handle missing data
