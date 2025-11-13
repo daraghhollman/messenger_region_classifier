@@ -1,5 +1,6 @@
 """
 Using the utilities created in src/apply_model.py, apply the model to all crossings, and save the data.
+We alter some of the code to run faster for this context.
 """
 
 import contextlib
@@ -8,6 +9,8 @@ import pickle
 import sys
 
 import hermpy.boundaries
+import hermpy.mag
+import hermpy.trajectory
 import hermpy.utils
 import joblib
 import numpy as np
@@ -15,7 +18,7 @@ import pandas as pd
 import sklearn.ensemble
 from tqdm import tqdm
 
-from apply_model import get_magnetospheric_region
+from apply_model import get_magnetospheric_region, get_window_features
 
 # Application parameters, these match what was used in the training process.
 data_window_size = 10  # seconds
@@ -60,17 +63,60 @@ def main():
     # individually.
     crossing_interval_groups = pair_crossing_intervals(crossing_intervals)
 
+    # To have a very informative progress bar, we flatten all tasks to the data
+    # sample level, rather than the crossing interval level.
+    processes = []
+    for crossing_interval_group in crossing_interval_groups:
+        group_is_pair = len(crossing_interval_group) != 1
+        if group_is_pair:
+            data_start_time = (
+                crossing_interval_group[0]["Start Time"] - interval_time_buffer
+            )
+            data_end_time = (
+                crossing_interval_group[1]["End Time"] + interval_time_buffer
+            )
+        else:
+            data_start_time = (
+                crossing_interval_group[0]["Start Time"] - interval_time_buffer
+            )
+            data_end_time = (
+                crossing_interval_group[0]["End Time"] + interval_time_buffer
+            )
+
+        window_size = dt.timedelta(seconds=data_window_size)
+        time_windows = [
+            (window_start, window_start + window_size)
+            for window_start in pd.date_range(
+                start=data_start_time,
+                end=data_end_time - window_size,
+                freq=f"{step_size}s",
+            )
+        ]
+
+        # Load data once for this entire group
+        data = hermpy.mag.Load_Between_Dates(
+            hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"],
+            data_start_time,
+            data_end_time,
+            average=None,
+            no_dirs=True,
+        )
+
+        # Add each time window as a task with its group identifier
+        for time_window in time_windows:
+            processes.append((time_window, data))
+
     with tqdm_joblib(
         tqdm(
-            desc="Applying model to crossing intervals",
+            desc="Processing time windows",
             dynamic_ncols=True,
             smoothing=0,
-            total=len(crossing_interval_groups),
+            total=len(processes),
         )
     ):
         results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
-            joblib.delayed(get_probabilities_for_group)(group)
-            for group in crossing_interval_groups
+            joblib.delayed(process_single_window)(time_window, data, model)
+            for time_window, data in processes
         )
 
     times, probabilities = zip(*results)  # Unpack results
@@ -144,29 +190,35 @@ def pair_crossing_intervals(crossing_intervals):
     return crossing_groups
 
 
-def get_probabilities_for_group(crossing_interval_group):
+def process_single_window(time_window, data, model):
 
     # These need to be set in here too so that they apply to each individual
     # worker instance.
     hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
-    # Check if crossing group is a pair or individual
-    group_is_pair = len(crossing_interval_group) != 1
+    classification_time = time_window[0] + (time_window[1] - time_window[0]) / 2
 
-    if group_is_pair:
-        data_start_time = (
-            crossing_interval_group[0]["Start Time"] - interval_time_buffer
+    window_data = data.loc[data["date"].between(*time_window)]
+    window_features = get_window_features(time_window, window_data)
+
+    # Calculate probabilities
+    if window_features is not None:
+        # Add heliocentric distance
+        sample_mid_time = window_features["Sample Start"] + (
+            window_features["Sample End"] - window_features["Sample Start"]
         )
-        data_end_time = crossing_interval_group[1]["End Time"] + interval_time_buffer
+        window_features["Heliocentric Distance (AU)"] = hermpy.utils.Constants.KM_TO_AU(
+            hermpy.trajectory.Get_Heliocentric_Distance([sample_mid_time])
+        )[0]
 
+        probs = model.predict_proba(
+            pd.DataFrame([window_features])[model.feature_names_in_]
+        )[0]
     else:
-        data_start_time = (
-            crossing_interval_group[0]["Start Time"] - interval_time_buffer
-        )
-        data_end_time = crossing_interval_group[0]["End Time"] + interval_time_buffer
+        probs = np.array([np.nan, np.nan, np.nan])
 
-    return get_magnetospheric_region(data_start_time, data_end_time)
+    return classification_time, probs
 
 
 # "Tracking progress of joblib.Parallel execution"
