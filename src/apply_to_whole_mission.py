@@ -27,7 +27,6 @@ interval_time_buffer = dt.timedelta(minutes=10)
 
 def main():
 
-    # n_jobs = int(input("n_jobs (-1 for all)? > "))
     n_jobs = -1
 
     # Set up data directories
@@ -64,7 +63,9 @@ def main():
             total=len(crossing_interval_groups),
         )
     ):
-        results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
+        results = joblib.Parallel(
+            n_jobs=n_jobs, pre_dispatch="1.5*n_jobs", temp_folder="./tmp/"
+        )(
             joblib.delayed(get_probabilities_for_group)(group)
             for group in crossing_interval_groups
         )
