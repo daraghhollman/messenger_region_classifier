@@ -13,6 +13,7 @@ import contextlib
 import datetime as dt
 import pickle
 import sys
+import warnings
 from multiprocessing import Pool, cpu_count
 
 import hermpy.boundaries
@@ -33,6 +34,12 @@ crossing_intervals_path = "./data/philpott_2020_crossing_list.xlsx"
 output_path = "./data/raw_model_output.csv"
 
 _model = None
+
+warnings.filterwarnings(
+    "ignore",
+    message=".*setting n_jobs=1.*",
+    category=UserWarning,
+)
 
 
 def main():
@@ -146,7 +153,7 @@ def get_probabilities_for_group(group):
         data_start = group[0]["Start Time"] - interval_time_buffer
         data_end = group[0]["End Time"] + interval_time_buffer
 
-    return get_magnetospheric_region(data_start, data_end, model_jobs=1)
+    return get_magnetospheric_region(data_start, data_end)
 
 
 if __name__ == "__main__":

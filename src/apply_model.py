@@ -43,7 +43,6 @@ def get_magnetospheric_region(
     start_time: dt.datetime,
     end_time: dt.datetime,
     model_path: str = "./data/model/messenger_region_classifier.pkl",
-    model_jobs: int = -1,
 ):
 
     # Load model
@@ -57,7 +56,7 @@ def get_magnetospheric_region(
     # Initialise array of probabilities as nan
     class_probabilities = np.full((len(is_data_missing), 3), np.nan)
     class_probabilities[~is_data_missing, :] = model.predict_proba(
-        pd.DataFrame(data_samples)[model.feature_names_in_], n_jobs=model_jobs
+        pd.DataFrame(data_samples)[model.feature_names_in_]
     )
 
     return classification_times, class_probabilities
