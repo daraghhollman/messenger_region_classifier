@@ -124,6 +124,9 @@ def get_window_features(time_windows, data):
     # For each time window, get the features of the data within
     window_data = data.loc[data["date"].between(*time_windows)]
 
+    if len(window_data) == 0:
+        return None
+
     return get_sample_features(window_data)
 
 
