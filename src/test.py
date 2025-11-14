@@ -51,7 +51,6 @@ def main():
     crossings = hermpy.boundaries.Load_Crossings(
         crossing_intervals_path, include_data_gaps=True
     )
-    crossings = crossings.iloc[:10]  # for testing
 
     groups = pair_crossing_intervals(crossings)
     print(f"Processing {len(groups)} crossing groups...")
