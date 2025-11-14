@@ -1,258 +1,152 @@
+#!/usr/bin/env python3
 """
-Using the utilities created in src/apply_model.py, apply the model to all crossings, and save the data.
-We alter some of the code to run faster for this context.
+Apply the trained model to all crossings efficiently using multiprocessing.
+
+This version:
+  - Replaces joblib.Parallel with multiprocessing.Pool.imap_unordered
+  - Uses dynamic load balancing (fast groups finish early)
+  - Keeps model and HermPy context per-process
+  - Tracks progress with tqdm
 """
 
 import contextlib
 import datetime as dt
 import pickle
 import sys
+from multiprocessing import Pool, cpu_count
 
 import hermpy.boundaries
-import hermpy.mag
-import hermpy.trajectory
 import hermpy.utils
-import joblib
 import numpy as np
 import pandas as pd
 import sklearn.ensemble
 from tqdm import tqdm
 
-from apply_model import get_window_features
+from apply_model import get_magnetospheric_region
 
-# Application parameters, these match what was used in the training process.
 data_window_size = 10  # seconds
-step_size = 1  # seconds, the frequency at which to make classifications
-
-# How far from either crossing should we apply to. This was chosen to match
-# the selection region for training data.
+step_size = 1  # seconds
 interval_time_buffer = dt.timedelta(minutes=10)
+model_path = "./data/model/messenger_region_classifier.pkl"
+data_dir = "./data/messenger/full_cadence"
+crossing_intervals_path = "./data/philpott_2020_crossing_list.xlsx"
+output_path = "./data/raw_model_output.csv"
+
+_model = None
 
 
 def main():
-
-    if len(sys.argv) != 1:
+    if len(sys.argv) > 1:
         n_jobs = int(sys.argv[1])
-
     else:
-        n_jobs = joblib.cpu_count() / 4
+        n_jobs = max(1, cpu_count() // 2)
+    print(f"Using {n_jobs} worker processes")
 
-    # Set up data directories
-    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+    # Global hermpy setup (needed before load)
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = data_dir
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
 
-    # Load model
-    print("Loading model...")
-    with open("./data/model/messenger_region_classifier.pkl", "rb") as f:
-        model: sklearn.ensemble.RandomForestClassifier = pickle.load(f)
-
-    # Load crossing intervals
-    print("Loading intervals...")
-    crossing_intervals = hermpy.boundaries.Load_Crossings(
-        "./data/philpott_2020_crossing_list.xlsx", include_data_gaps=True
+    # Load crossings
+    print("Loading crossing intervals...")
+    crossings = hermpy.boundaries.Load_Crossings(
+        crossing_intervals_path, include_data_gaps=True
     )
 
-    # For now we can just test for a handful of intervals
-    crossing_intervals = crossing_intervals.iloc[:10]
+    groups = pair_crossing_intervals(crossings)
+    print(f"Processing {len(groups)} crossing groups...")
 
-    # To ensure no overlap in application to a given crossing interval, we want to
-    # classify pairs of crossing intervals as one. i.e. BS_IN and MP_IN, as well as
-    # MP_OUT and BS_OUT However, there are sometimes missing crossings, so we need
-    # need to be careful. Based on the geometry of the orbit and the physics of the
-    # system, we never expect to see MP_IN closely followed by any BS crossing.
-    # Similarly, we never expect to see BS_OUT closely followed by any MP crossing.
-    # If we do, it means we can't treat them as a pair, and must instead move
-    # individually.
-    print("Pairing crossing intervals where possible...")
-    crossing_interval_groups = pair_crossing_intervals(crossing_intervals)
+    # Parallel execution using imap_unordered
+    classification_times = []
+    region_probabilities = []
 
-    # To have a very informative progress bar, we flatten all tasks to the data
-    # sample level, rather than the crossing interval level.
-    processes = []
-    for crossing_interval_group in tqdm(
-        crossing_interval_groups,
-        desc="Creating process items",
-        total=len(crossing_interval_groups),
-    ):
-        group_is_pair = len(crossing_interval_group) != 1
-        if group_is_pair:
-            data_start_time = (
-                crossing_interval_group[0]["Start Time"] - interval_time_buffer
-            )
-            data_end_time = (
-                crossing_interval_group[1]["End Time"] + interval_time_buffer
-            )
-        else:
-            data_start_time = (
-                crossing_interval_group[0]["Start Time"] - interval_time_buffer
-            )
-            data_end_time = (
-                crossing_interval_group[0]["End Time"] + interval_time_buffer
-            )
-
-        window_size = dt.timedelta(seconds=data_window_size)
-        time_windows = [
-            (window_start, window_start + window_size)
-            for window_start in pd.date_range(
-                start=data_start_time,
-                end=data_end_time - window_size,
-                freq=f"{step_size}s",
-            )
-        ]
-
-        # Load data once for this entire group
-        data = hermpy.mag.Load_Between_Dates(
-            hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"],
-            data_start_time,
-            data_end_time,
-            average=None,
-            no_dirs=True,
-        )
-
-        # Add each time window as a task with its group identifier
-        for time_window in time_windows:
-            window_data = data.loc[data["date"].between(*time_window)]
-            processes.append((time_window, window_data))
-
-    # Chunking these processes may yield better performance.
-    chunk_size = 100
-    processes = [
-        processes[i : i + chunk_size] for i in range(0, len(processes), chunk_size)
-    ]
-
-    with tqdm_joblib(
-        tqdm(
-            desc="Processing time windows",
+    with Pool(processes=n_jobs) as pool:
+        for times, probs in tqdm(
+            pool.imap_unordered(get_probabilities_for_group, groups),
+            total=len(groups),
+            desc="Applying model",
             dynamic_ncols=True,
-            smoothing=0,
-            total=len(processes),
-        )
-    ):
-        results = joblib.Parallel(n_jobs=n_jobs, temp_folder="./tmp/")(
-            joblib.delayed(process_single_window)(time_window, data, model)
-            for time_window, data in processes
-        )
+        ):
+            classification_times.append(times)
+            region_probabilities.append(probs)
 
-    times, probabilities = zip(*results)  # Unpack results
+    # Concatenate results and sort
+    classification_times = np.concatenate(classification_times)
+    region_probabilities = np.vstack(region_probabilities)
+    order = np.argsort(classification_times)
+    classification_times = classification_times[order]
+    region_probabilities = region_probabilities[order]
 
-    # Convert lists of times and probabilities into arrays
-    times = np.concatenate(times)
-    probabilities = np.vstack(probabilities)
+    df = pd.DataFrame(
+        {
+            "Time": classification_times,
+            "P(Solar Wind)": region_probabilities[:, 0],
+            "P(Magnetosheath)": region_probabilities[:, 1],
+            "P(Magnetosphere)": region_probabilities[:, 2],
+        }
+    )
+    df.to_csv(output_path, index=False)
 
-    data_to_save = {
-        "Time": times,
-        "P(Solar Wind)": probabilities[:, 0],
-        "P(Magnetosheath)": probabilities[:, 1],
-        "P(Magnetosphere)": probabilities[:, 2],
-    }
+    print(f"Saved model output to {output_path}")
 
-    pd.DataFrame(data_to_save).to_csv("./data/raw_model_output.csv", index=False)
+
+def get_model():
+    global _model
+    if _model is None:
+        with open(model_path, "rb") as f:
+            _model = pickle.load(f)
+    return _model
 
 
 def pair_crossing_intervals(crossing_intervals):
     """
-    Returns a list of lists (length 1 or 2)
+    Returns a list of lists (each length 1 or 2)
     """
-    crossing_groups = []
+    groups = []
+    i = 0
+    while i < len(crossing_intervals) - 1:
+        current = crossing_intervals.loc[i]
+        nxt = crossing_intervals.loc[i + 1]
 
-    crossing_index = 0
-    while crossing_index < len(crossing_intervals) - 1:
-
-        current_crossing = crossing_intervals.loc[crossing_index]
-        next_crossing = crossing_intervals.loc[crossing_index + 1]
-
-        if current_crossing["Type"] == "BS_IN":
-            # We expect a magnetopause in crossing next
-            match next_crossing["Type"]:
-                case "MP_IN":
-                    # This is as normal, we can add to our list of pairs
-                    crossing_groups.append([current_crossing, next_crossing])
-
-                    # We don't want to consider the next crossing as we have already
-                    # saved it, so we add an extra to the crossing index.
-                    crossing_index += 1
-
-                case _:
-                    # This is abnormal, we just want to look around the current crossing
-                    crossing_groups.append([current_crossing])
-
-        elif current_crossing["Type"] == "MP_OUT":
-            # We expect a bow shock in crossing next
-            match next_crossing["Type"]:
-                case "BS_OUT":
-                    # This is as normal, we can add to our list of pairs
-                    crossing_groups.append([current_crossing, next_crossing])
-
-                    # We don't want to consider the next crossing as we have already
-                    # saved it, so we add an extra to the crossing index.
-                    crossing_index += 1
-
-                case _:
-                    # This is abnormal, we just want to look around the current crossing
-                    crossing_groups.append([current_crossing])
-
+        if current["Type"] == "BS_IN":
+            if nxt["Type"] == "MP_IN":
+                groups.append([current, nxt])
+                i += 1
+            else:
+                groups.append([current])
+        elif current["Type"] == "MP_OUT":
+            if nxt["Type"] == "BS_OUT":
+                groups.append([current, nxt])
+                i += 1
+            else:
+                groups.append([current])
         else:
-            # Otherwise, if for some reason the previous part of the crossing pair
-            # didn't exist. We save this crossing on its own.
-
-            # Ignore data gaps in this search
-            if current_crossing["Type"] != "DATA_GAP":
-                crossing_groups.append([current_crossing])
-
-        crossing_index += 1
-
-    return crossing_groups
+            if current["Type"] != "DATA_GAP":
+                groups.append([current])
+        i += 1
+    return groups
 
 
-def process_single_window(time_window, data, model):
-
-    # These need to be set in here too so that they apply to each individual
-    # worker instance.
-    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = "./data/messenger/full_cadence"
+def get_probabilities_for_group(group):
+    """
+    Processes one crossing interval group.
+    Loads HermPy context + model per worker (cached),
+    then runs get_magnetospheric_region().
+    Returns (times, probs) for this group.
+    """
+    # Reinitialize hermpy context per process
+    hermpy.utils.User.DATA_DIRECTORIES["MAG_FULL"] = data_dir
     hermpy.utils.User.METAKERNEL = "./SPICE/messenger/metakernel_messenger.txt"
+    _ = get_model()  # ensure model loaded in this process
 
-    classification_time = time_window[0] + (time_window[1] - time_window[0]) / 2
-
-    window_data = data.loc[data["date"].between(*time_window)]
-    window_features = get_window_features(time_window, window_data)
-
-    # Calculate probabilities
-    if window_features is not None:
-        # Add heliocentric distance
-        sample_mid_time = window_features["Sample Start"] + (
-            window_features["Sample End"] - window_features["Sample Start"]
-        )
-        window_features["Heliocentric Distance (AU)"] = hermpy.utils.Constants.KM_TO_AU(
-            hermpy.trajectory.Get_Heliocentric_Distance([sample_mid_time])
-        )[0]
-
-        probs = model.predict_proba(
-            pd.DataFrame([window_features])[model.feature_names_in_]
-        )[0]
+    # Check if group is pair
+    if len(group) != 1:
+        data_start = group[0]["Start Time"] - interval_time_buffer
+        data_end = group[1]["End Time"] + interval_time_buffer
     else:
-        probs = np.array([np.nan, np.nan, np.nan])
+        data_start = group[0]["Start Time"] - interval_time_buffer
+        data_end = group[0]["End Time"] + interval_time_buffer
 
-    return classification_time, probs
-
-
-# "Tracking progress of joblib.Parallel execution"
-# https://stackoverflow.com/questions/24983493/tracking-progress-of-joblib-parallel-execution
-@contextlib.contextmanager
-def tqdm_joblib(tqdm_object):
-    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
-
-    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
-        def __call__(self, *args, **kwargs):
-            tqdm_object.update(n=self.batch_size)
-            return super().__call__(*args, **kwargs)
-
-    old_batch_callback = joblib.parallel.BatchCompletionCallBack
-    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
-    try:
-        yield tqdm_object
-    finally:
-        joblib.parallel.BatchCompletionCallBack = old_batch_callback
-        tqdm_object.close()
+    return get_magnetospheric_region(data_start, data_end, model_jobs=1)
 
 
 if __name__ == "__main__":
