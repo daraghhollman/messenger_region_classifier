@@ -3,7 +3,7 @@
 import pandas as pd
 
 
-def load_reduced_data():
+def load_reduced_data(verbose=True):
 
     SEED = 1785
 
@@ -49,15 +49,16 @@ def load_reduced_data():
     )
 
     # Print a summary
-    print(
-        f"""
-        Full dataset lengths:
-        Size: {len(all_samples)}
-            SW: {len(all_samples.loc[all_samples["Label"] == "Solar Wind"])}
-            MSh: {len(all_samples.loc[all_samples["Label"] == "Magnetosheath"])}
-            MSp: {len(all_samples.loc[all_samples["Label"] == "Magnetosphere"])}
-        """
-    )
+    if verbose:
+        print(
+            f"""
+            Full dataset lengths:
+            Size: {len(all_samples)}
+                SW: {len(all_samples.loc[all_samples["Label"] == "Solar Wind"])}
+                MSh: {len(all_samples.loc[all_samples["Label"] == "Magnetosheath"])}
+                MSp: {len(all_samples.loc[all_samples["Label"] == "Magnetosphere"])}
+            """
+        )
 
     # We want to create a train/test split so we can quantify performance of
     # the final model after optimisation. OOB Score is used to validate the
@@ -67,12 +68,13 @@ def load_reduced_data():
     training_data = all_samples.sample(frac=1 - test_fraction, random_state=SEED)
     test_data = all_samples.drop(index=training_data.index)
 
-    print(
-        f"""
-        Data split into train/test split with test fraction = {test_fraction}
-        Size of training data = {len(training_data)}
-        Size of test data = {len(test_data)}
-        """
-    )
+    if verbose:
+        print(
+            f"""
+            Data split into train/test split with test fraction = {test_fraction}
+            Size of training data = {len(training_data)}
+            Size of test data = {len(test_data)}
+            """
+        )
 
     return training_data, test_data
