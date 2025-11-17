@@ -8,6 +8,7 @@ mkdir -p $DATA_DIR_1S
 
 mkdir -p "./data/reduced"
 mkdir -p "./data/metrics"
+mkdir -p "./data/postprocessing"
 mkdir -p "./data/model"
 
 # Make metakernel
