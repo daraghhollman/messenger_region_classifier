@@ -1,15 +1,7 @@
-#!/usr/bin/env python3
 """
 Apply the trained model to all crossings efficiently using multiprocessing.
-
-This version:
-  - Replaces joblib.Parallel with multiprocessing.Pool.imap_unordered
-  - Uses dynamic load balancing (fast groups finish early)
-  - Keeps model and HermPy context per-process
-  - Tracks progress with tqdm
 """
 
-import contextlib
 import datetime as dt
 import pickle
 import sys
@@ -20,7 +12,6 @@ import hermpy.boundaries
 import hermpy.utils
 import numpy as np
 import pandas as pd
-import sklearn.ensemble
 from tqdm import tqdm
 
 from apply_model import get_magnetospheric_region
@@ -86,9 +77,10 @@ def main():
     df = pd.DataFrame(
         {
             "Time": classification_times,
-            "P(Solar Wind)": region_probabilities[:, 0],
-            "P(Magnetosheath)": region_probabilities[:, 1],
-            "P(Magnetosphere)": region_probabilities[:, 2],
+            # When we created the model, the classes were sorted alphabetically
+            "P(Solar Wind)": region_probabilities[:, 2],
+            "P(Magnetosheath)": region_probabilities[:, 0],
+            "P(Magnetosphere)": region_probabilities[:, 1],
         }
     )
     df.to_csv(output_path, index=False)
