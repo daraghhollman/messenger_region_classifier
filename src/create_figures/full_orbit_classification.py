@@ -10,6 +10,7 @@ import hermpy.mag
 import hermpy.plotting
 import hermpy.utils
 import matplotlib.dates
+import matplotlib.patheffects
 import matplotlib.pyplot as plt
 
 start_time = dt.datetime(2013, 6, 1, 12)
@@ -47,7 +48,7 @@ classification_times, region_probabilities = get_magnetospheric_region(
 
 # Create figure
 
-fig, axes = plt.subplots(2, 1, figsize=(6, 8), sharex=True)
+fig, axes = plt.subplots(2, 1, figsize=(11.7, 8.3), sharex=True)
 mag_ax, proba_ax = axes
 
 to_plot = ["|B|", "Bx", "By", "Bz"]
@@ -74,7 +75,14 @@ region_colours = [
 
 for i, (colour, label) in enumerate(zip(region_colours, labels)):
     proba_ax.plot(
-        classification_times, region_probabilities[:, i], color=colour, label=label
+        classification_times,
+        region_probabilities[:, i],
+        color=colour,
+        label=label,
+        path_effects=[  # Add a black outline to the line
+            matplotlib.patheffects.Stroke(linewidth=2, foreground="k"),
+            matplotlib.patheffects.Normal(),
+        ],
     )
 
 proba_ax.legend()
