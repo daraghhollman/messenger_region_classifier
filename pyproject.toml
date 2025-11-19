@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "hermpy",
+    "kneed>=0.8.5",
     "matplotlib>=3.10.7",
     "numpy>=2.3.4",
     "openpyxl>=3.1.5",
@@ -16,6 +17,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "spiceypy>=7.0.0",
     "tqdm>=4.67.1",
+    "xarray>=2025.11.0",
 ]
 
 [tool.uv.sources]
