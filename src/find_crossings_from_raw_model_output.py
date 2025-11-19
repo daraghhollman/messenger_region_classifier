@@ -248,16 +248,29 @@ for crossing_group in tqdm(
     # Define the unknown region
     # This parameter is determined from ./src/define_unknown_regions/*
     # Regions are considered unknown if they are below the curve Ax/(B+x)
-    unknown_region_parameters = pd.read_csv(
-        "./data/postprocessing/unknown_region_parameters.csv"
-    )
-    A = unknown_region_parameters.iloc[0]["Value"]
-    B = unknown_region_parameters.iloc[1]["Value"]
-    x = region_data["Duration (seconds)"]
+    # unknown_region_parameters = pd.read_csv(
+    #     "./data/postprocessing/unknown_region_parameters.csv"
+    # )
+    # A = unknown_region_parameters.iloc[0]["Value"]
+    # B = unknown_region_parameters.iloc[1]["Value"]
+    # x = region_data["Duration (seconds)"]
+    #
+    # region_data.loc[~(region_data["Confidence"] >= A * x / (B + x)), "Label"] = (
+    #     "Unknown"
+    # )
 
-    region_data.loc[~(region_data["Confidence"] >= A * x / (B + x)), "Label"] = (
-        "Unknown"
-    )
+    # Also include a minimum duration for an isolated
+    # region to be considered valid.
+    # region_data.loc[region_data["Confidence"] < 0.3, "Label"] = "Unknown"
+
+    # Previous unknown definition
+    region_data.loc[
+        ~(
+            (region_data["Duration (seconds)"] >= 356)
+            | (region_data["Confidence"] > 0.84)
+        ),
+        "Label",
+    ] = "Unknown"
 
     # Save regions
     all_regions.append(region_data)
