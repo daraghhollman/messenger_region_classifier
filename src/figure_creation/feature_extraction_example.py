@@ -91,19 +91,6 @@ right_distribution_ax = plt.subplot2grid(
     colspan=2,
 )
 
-# Inset some axes to show the time series for each distribution
-left_inset_ax = left_distribution_ax.inset_axes((0.05, 0.03, 0.9, 0.1))
-right_inset_ax = right_distribution_ax.inset_axes(
-    (0.05, 0.03, 0.9, 0.1), sharey=left_inset_ax
-)
-
-inset_axes = [left_inset_ax, right_inset_ax]
-for ax in inset_axes:
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.margins(0)
-
-
 features_table_ax = plt.subplot2grid(grid_shape, loc=(0, 4), rowspan=4, colspan=2)
 
 data_samples["Left"]["ax"] = left_distribution_ax
@@ -132,21 +119,6 @@ for var, colour in zip(components, mag_colours):
             data_samples["Right"]["Start"], data_samples["Right"]["End"]
         )
     ]
-
-    left_inset_ax.plot(
-        left_data["date"],
-        left_data[var],
-        color=colour,
-        label=var,
-        alpha=1 if var == "|B|" else 0.75,
-    )
-    right_inset_ax.plot(
-        right_data["date"],
-        right_data[var],
-        color=colour,
-        label=var,
-        alpha=1 if var == "|B|" else 0.75,
-    )
 
 # Set tick formatting
 time_series_ax.xaxis.set_major_locator(
