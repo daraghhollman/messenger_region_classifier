@@ -1,69 +1,46 @@
-"""
-We call a single region classification as the length of continuous 1-sec
-classifications. We want to find a relation between the confidence in that
-classification and the duration to determine some regions as unknown.
-"""
-
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
-# First we load the raw model ouput
 raw_model_output = pd.read_csv("./data/raw_model_output.csv")
 raw_model_output["Time"] = pd.to_datetime(raw_model_output["Time"], format="ISO8601")
-probabilities = raw_model_output[
-    ["P(Solar Wind)", "P(Magnetosheath)", "P(Magnetosphere)"]
-].to_numpy()
 
-# We need to find the change points to determine where regions occur, so that
-# we can break this up into individual regions.
-region_classification = np.argmax(probabilities, axis=1)
+probability_columns = ["P(Solar Wind)", "P(Magnetosheath)", "P(Magnetosphere)"]
 
-# We also need to find the ratio of probabilities to determine confidence later
-sorted_probabilities = np.sort(probabilities, axis=1)
-largest_probabilities = sorted_probabilities[:, -1]
-second_largest_probabities = sorted_probabilities[:, -2]
+# Each row contains a Time value, and 3 probability values. There are sometimes time jumps, which we want to ignore.
+# We can find the time difference in the following way:
+raw_model_output["Time Difference"] = raw_model_output["Time"].diff()
 
-probability_ratio = second_largest_probabities / largest_probabilities
+# Define a maximum time gap to split into multiple regions
+max_gap = pd.Timedelta("5 seconds")
 
-region_mapping = np.array(
-    [
-        "Solar Wind",
-        "Magnetosheath",
-        "Magnetosphere",
-    ]
+raw_model_output["Label"] = (
+    raw_model_output[probability_columns].idxmax(axis=1).str[2:-1]
 )
-region_labels = region_mapping[region_classification]
 
+probabilities = raw_model_output[probability_columns].to_numpy()
+sorted_probabilities = -np.sort(-probabilities, axis=1)[:, :2]
+raw_model_output["Probability Ratio"] = (
+    sorted_probabilities[:, 1] / sorted_probabilities[:, 0]
+)
 
-region_change_indices = np.where(
-    region_classification[:-1] != region_classification[1:]
-)[0]
+# Changepoints - This is a boolean column
+raw_model_output["Changepoint"] = (
+    raw_model_output["Label"] != raw_model_output["Label"].shift()
+) | (raw_model_output["Time Difference"] > max_gap)
 
-# We add one to this region change index so that each index marks the start of
-# a new region
-region_change_indices += 1
+# Define a region id as the cumulative sum of the changepoints
+raw_model_output["Region ID"] = raw_model_output["Changepoint"].cumsum()
 
-regions: list[dict] = []
-for i in tqdm(
-    range(len(region_change_indices) - 1),
-    desc="Finding continous regions",
-    total=len(region_change_indices) - 1,
-):
+regions = raw_model_output.groupby("Region ID").agg(
+    **{
+        "Start Time": ("Time", "min"),
+        "End Time": ("Time", "max"),
+        "Label": ("Label", "first"),
+        "Mean Probability Ratio": ("Probability Ratio", "mean"),
+    }
+)
 
-    current_region_index = region_change_indices[i]
-    next_region_index = region_change_indices[i + 1]
+regions["Duration"] = (regions["End Time"] - regions["Start Time"]).dt.total_seconds()
+regions["Confidence"] = 1 - regions["Mean Probability Ratio"]
 
-    regions.append(
-        {
-            "Label": region_labels[current_region_index],
-            "Duration": (
-                raw_model_output["Time"].iloc[next_region_index]
-                - raw_model_output["Time"].iloc[current_region_index]
-            ).total_seconds(),
-            "Confidence": 1
-            - np.median(probability_ratio[current_region_index:next_region_index]),
-        }
-    )
-
-pd.DataFrame(regions).to_csv("./data/postprocessing/continous_regions.csv", index=False)
+regions.to_csv("./data/postprocessing/continous_regions.csv", index=False)
