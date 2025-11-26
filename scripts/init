@@ -10,6 +10,7 @@ mkdir -p "./data/reduced"
 mkdir -p "./data/metrics"
 mkdir -p "./data/postprocessing"
 mkdir -p "./data/model"
+mkdir -p "./data/cache"
 
 # Make metakernel
 ./scripts/make_messenger_metakernel
