@@ -5,98 +5,161 @@ spatial bin.
 """
 
 import datetime as dt
+import os
 
 import hermpy.trajectory
 import hermpy.utils
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import xarray as xr
 from tqdm import tqdm
 
-# Load post-processed regions (i.e. including unknown regions)
-print("Loading region data")
-regions = pd.read_csv("./data/postprocessing/regions_with_unknowns.csv")
+FORCE_UPDATE = False
+REGIONS_DATA_PATH = "./data/postprocessing/regions_with_unknowns.csv"
+CACHE_PATH = "./data/cache/region_maps.nc"
+FIGURE_PATH = "./figures/classification_spatial_spread.pdf"
 
-# Shorten for testing
-regions = regions.sample(frac=0.001)
 
-regions["Start Time"] = pd.to_datetime(regions["Start Time"], format="ISO8601")
-regions["End Time"] = pd.to_datetime(regions["End Time"], format="ISO8601")
+def main():
 
-# It is a little too intense to get the position at every second
-predictions = {
-    "Times": [],
-    "Labels": [],
-}
-for region_start, region_end, label in tqdm(
-    zip(regions["Start Time"], regions["End Time"], regions["Label"]),
-    desc="Extracting times from regions",
-    total=len(regions),
-):
-    times = pd.date_range(region_start, region_end, freq="10min")
-    predictions["Times"].extend(times)
-    predictions["Labels"].extend([label] * len(times))
+    # Test if we need to create the probability map files
+    if not os.path.isfile(CACHE_PATH) or FORCE_UPDATE:
+        create_maps()
 
-# Find the location of messenger at all of these times.
-positions = (
-    hermpy.trajectory.Get_Position(
-        "MESSENGER", predictions["Times"], frame="MSM", aberrate=True
-    )
-    / hermpy.utils.Constants.MERCURY_RADIUS_KM
-)
+    plot_maps()
 
-predictions["X"] = positions[:, 0]
-predictions["CYL"] = np.sqrt(positions[:, 1] ** 2 + positions[:, 2] ** 2)
+    plt.savefig(FIGURE_PATH, format="pdf")
 
-predictions = pd.DataFrame(predictions)
 
-# Create bins
-bin_size = 0.25
-x_bins = np.arange(-5, 5 + bin_size, bin_size)  # Radii
-cyl_bins = np.arange(0, 8 + bin_size, bin_size)  # Radii
+def plot_maps():
 
-# Make 2D histograms for each region type
-region_names = (["Solar Wind", "Magnetosheath", "Magnetosphere", "Unknown"],)
-region_maps = {}
-for region_name in region_names:
-    region_probability_maps = []
+    fig, axes = plt.subplots(2, 2, figsize=(8, 8), sharex=True, sharey=True)
+    unflattend_axes = axes
+    axes = axes.flatten()
 
-    # Filter observations by region
-    filtered_predictions = predictions.loc[
-        predictions["Predicted Region"] == region_name
-    ][["X MSM' (radii)", "CYL MSM' (radii)"]]
+    probability_maps = xr.load_dataset(CACHE_PATH)
 
-    region_probability_map, _, _ = np.histogram2d(
-        filtered_predictions["X MSM' (radii)"],
-        filtered_predictions["CYL MSM' (radii)"],
-        bins=[x_bins, cyl_bins],
+    regions = ["Solar Wind", "Magnetosheath", "Magnetosphere", "Unknown"]
+    for i, region_name in enumerate(regions):
+        data = probability_maps[f"{region_name.replace(' ', '_').lower()}"].T
+
+        data.values[np.where(data.values == 0)] = np.nan
+
+        axes[i].set_title(region_name)
+        mesh = axes[i].pcolormesh(
+            data.coords["X"], data.coords["CYL"], data.values, vmin=0, vmax=1
+        )
+
+        axes[i].set_aspect("equal")
+
+        if axes[i] in unflattend_axes[:, 0]:
+            axes[i].set_ylabel(
+                r"$\left( Y_{\text{MSM'}}^2 + Z_{\text{MSM'}}^2 \right)^{0.5} \quad \left[ \text{R}_\text{M} \right]$"
+            )
+
+        if axes[i] in unflattend_axes[1]:
+            axes[i].set_xlabel(r"$X_{\rm MSM'} \quad \left[ \text{R}_\text{M} \right]$")
+
+    cbar = fig.colorbar(
+        mesh, ax=axes, label="Fraction of Regions of Type", location="right"
     )
 
-    region_maps.update({region_name: region_probability_map})
+    return fig
 
-# Noramlise these maps so that they actually represent probabilities
-map_totals = np.sum(
-    [region_maps[region] for region in region_names],
-    axis=0,
-)
 
-for region in region_names:
-    region_maps[region] /= map_totals
+def create_maps():
+    # Load post-processed regions (i.e. including unknown regions)
+    regions = pd.read_csv(REGIONS_DATA_PATH)
 
-    # We also don't want 0 values as they obscure the low value data
-    # We do this when we plot instead
-    # region_maps[region]["Mean"][np.where(region_maps[region]["Mean"] == 0)] = np.nan
+    regions["Start Time"] = pd.to_datetime(regions["Start Time"], format="ISO8601")
+    regions["End Time"] = pd.to_datetime(regions["End Time"], format="ISO8601")
 
-# The cleanest way to save these data is as a netcdf file.
-probability_map = xr.Dataset()
+    predictions = {
+        "Times": [],
+        "Labels": [],
+    }
+    for region_start, region_end, label in tqdm(
+        zip(regions["Start Time"], regions["End Time"], regions["Label"]),
+        total=len(regions),
+        desc="Getting region times",
+    ):
+        # We don't need 1 second resolution for these maps. 1 minute is
+        # sufficient.
+        times = pd.date_range(region_start, region_end, freq="1min")
+        predictions["Times"].extend(times)
+        predictions["Labels"].extend([label] * len(times))
 
-# Save dimensions (bin centres)
-probability_map.coords["X"] = (x_bins[:-1] + x_bins[1:]) / 2
-probability_map.coords["CYL"] = (cyl_bins[:-1] + cyl_bins[1:]) / 2
+    # Find the location of messenger at all of these times.
+    print("Finding positions")
+    positions = (
+        hermpy.trajectory.Get_Position(
+            "MESSENGER", predictions["Times"], frame="MSM", aberrate=True
+        )
+        / hermpy.utils.Constants.MERCURY_RADIUS_KM
+    )
 
-# Add other metadata
-probability_map.attrs["Date created"] = dt.datetime.today().__str__()
+    predictions["X"] = positions[:, 0]
+    predictions["CYL"] = np.sqrt(positions[:, 1] ** 2 + positions[:, 2] ** 2)
 
-# Save to NetCDF
-output_file = "./data/cache/region_maps.nc"
-probability_map.to_netcdf(output_file)
+    predictions = pd.DataFrame(predictions)
+
+    # Create bins
+    bin_size = 0.25
+    x_bins = np.arange(-5, 5 + bin_size, bin_size)  # Radii
+    cyl_bins = np.arange(0, 8 + bin_size, bin_size)  # Radii
+
+    # Make 2D histograms for each region type
+    region_names = ["Solar Wind", "Magnetosheath", "Magnetosphere", "Unknown"]
+    region_maps = {}
+    for region_name in region_names:
+        region_probability_maps = []
+
+        # Filter observations by region
+        filtered_predictions = predictions.loc[predictions["Labels"] == region_name][
+            ["X", "CYL"]
+        ]
+
+        region_probability_map, _, _ = np.histogram2d(
+            filtered_predictions["X"],
+            filtered_predictions["CYL"],
+            bins=[x_bins, cyl_bins],
+        )
+
+        region_maps.update({region_name: region_probability_map})
+
+    # Noramlise these maps so that they actually represent probabilities
+    map_totals = np.sum(
+        [region_maps[region] for region in region_names],
+        axis=0,
+    )
+
+    for region in region_names:
+        region_maps[region] /= map_totals
+
+    # The cleanest way to save these data is as a netcdf file.
+    probability_map = xr.Dataset()
+
+    # Save dimensions (bin centres)
+    probability_map.coords["X"] = (x_bins[:-1] + x_bins[1:]) / 2
+    probability_map.coords["CYL"] = (cyl_bins[:-1] + cyl_bins[1:]) / 2
+
+    # Add other metadata
+    probability_map.attrs["Date created"] = dt.datetime.today().__str__()
+
+    # Add data
+    for region_name, data in region_maps.items():
+        region_id = region_name.replace(" ", "_").lower()
+
+        probability_map[f"{region_id}"] = (("X", "CYL"), data)
+
+    # Save to NetCDF
+    probability_map.to_netcdf(CACHE_PATH)
+
+    # Check if output saved correctly
+    loaded = xr.load_dataset(CACHE_PATH)
+    print(loaded)
+
+
+if __name__ == "__main__":
+    main()
