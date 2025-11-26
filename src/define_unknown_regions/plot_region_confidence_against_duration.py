@@ -9,13 +9,12 @@ from hermpy.plotting import wong_colours as colours
 fig, ax = plt.subplots()
 
 regions = pd.read_csv("./data/postprocessing/continous_regions.csv").dropna()
-r_before = len(regions)
 
 # We're not concerned with extremely high duration regions, so we remove
 # anything above 3 sigma.
+r_before = len(regions)
 regions = regions[(np.abs(scipy.stats.zscore(regions["Duration"])) <= 3)]
 r_after = len(regions)
-
 print(f"{r_before - r_after} (of {r_before}) regions removed")
 
 
@@ -26,10 +25,14 @@ def fit_function(x, a, b):
 # Repeat for all, but also each class on its own
 fit = {
     "All": {"Colour": colours["black"]},
-    "Solar Wind": {"Colour": colours["orange"]},
-    "Magnetosheath": {"Colour": colours["red"]},
-    "Magnetosphere": {"Colour": colours["yellow"]},
+    "Solar Wind": {"Colour": colours["yellow"]},
+    "Magnetosheath": {"Colour": colours["orange"]},
+    "Magnetosphere": {"Colour": colours["blue"]},
 }
+
+# fig, axes = plt.subplots(1, 3)
+# i = 0
+
 for selection in fit.keys():
 
     if selection == "All":
@@ -41,12 +44,25 @@ for selection in fit.keys():
     else:
         regions_subset = regions.loc[regions["Label"] == selection]
 
+        print(f"Length of {selection} subset: { len(regions_subset) }")
+
+        # _, _, _, hist = axes[i].hist2d(
+        #     regions_subset["Duration"],
+        #     regions_subset["Confidence"],
+        #     norm="log",
+        #     bins=50,
+        # )
+        # plt.colorbar(hist, ax=axes[i])
+        # i += 1
+
         pars, cov = scipy.optimize.curve_fit(
             fit_function, regions_subset["Duration"], regions_subset["Confidence"]
         )
         fit_errors = np.sqrt(np.diag(cov))
 
     fit[selection].update({"Params": pars, "Errors": fit_errors})
+
+# plt.show()
 
 
 # Plot region data
@@ -63,21 +79,18 @@ fig.colorbar(hist, ax=ax, label="# Regions")
 x_range = np.linspace(1, regions["Duration"].max(), 1000)
 for key, values in fit.items():
 
-    if key != "All":
-        continue
-
     ax.plot(
         x_range,
         fit_function(x_range, *values["Params"]),
         color=values["Colour"],
-        lw=2,
+        lw=4 if key == "All" else 2,
         label=f"Least squares fit (Region: {key})",
     )
 
 # Find knee point
 kneedle = kneed.KneeLocator(
     x_range,
-    fit_function(x_range, *values["Params"]),
+    fit_function(x_range, *fit["All"]["Params"]),
     curve="concave",
     direction="increasing",
 )
