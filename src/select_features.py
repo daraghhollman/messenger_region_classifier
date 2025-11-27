@@ -187,7 +187,6 @@ feature_sets = {
         "Kurtosis Bx",
         "Kurtosis By",
         "Kurtosis Bz",
-        "Heliocentric Distance (AU)",
     ],
     "Only Mean": [
         "Mean |B|",
