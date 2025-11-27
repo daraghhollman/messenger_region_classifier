@@ -111,6 +111,10 @@ def main():
         for feature in best_feature_set:
             file.write(feature + "\n")
 
+    with open("./data/model/no_ephemeris_features", "w") as file:
+        for feature in feature_sets["No Ephemeris"]:
+            file.write(feature + "\n")
+
 
 # Define feature sets to explore
 feature_sets = {

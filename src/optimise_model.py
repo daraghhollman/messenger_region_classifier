@@ -12,6 +12,7 @@ import sklearn.ensemble
 
 from load_data import load_reduced_data
 
+USE_NO_EPHEMERIS_FEATURES = False
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
 
@@ -38,7 +39,14 @@ def main():
 
     # Load selected features from ./src/select_features.py
     features = []
-    with open("./data/model/selected_features.txt", "r") as f:
+    with open(
+        (
+            "./data/model/selected_features.txt"
+            if not USE_NO_EPHEMERIS_FEATURES
+            else "./data/model/no_ephemeris_features.txt"
+        ),
+        "r",
+    ) as f:
         for line in f:
             features.append(line.strip())
 
