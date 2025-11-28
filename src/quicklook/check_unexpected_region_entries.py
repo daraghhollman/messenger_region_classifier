@@ -169,9 +169,18 @@ for index, interval in philpott_intervals.iterrows():
         unexpected_indices.append(index)
         solar_wind_time.append(time)
 
-# print(solar_wind_time)
-print(unexpected_instances)
-
 for i, interval_index in enumerate(unexpected_indices):
-    print(philpott_intervals.loc[interval_index])
-# print(f"{unexpected_time} seconds")
+    print("\n")
+    this_interval = philpott_intervals.loc[interval_index]
+
+    print(f"Label: {this_interval["Type"]}")
+    print(f"Orbit: {this_interval["Orbit Number"]}")
+    print(f"Start: {this_interval["Start Time"]}")
+    print(f"End: {this_interval["End Time"]}")
+
+    duration_of_unexpected_regions = solar_wind_time[i]
+    interval_duration = (
+        this_interval["End Time"] - this_interval["Start Time"]
+    ).total_seconds()
+    print(f"Duration of Unpextected: {duration_of_unexpected_regions}")
+    print(f"%: {100 * duration_of_unexpected_regions / interval_duration}")
