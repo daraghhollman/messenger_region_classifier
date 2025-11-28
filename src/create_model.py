@@ -39,6 +39,8 @@ def main():
         confusion_matrices_path = "./data/model/confusion_matrices_no_ephemeris.pkl"
         performance_metrics_path = "./data/model/performance_metrics_no_ephemeris.csv"
 
+        print("Creating model without ephemeris features")
+
     ######################################################################################
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################

@@ -33,6 +33,8 @@ def main():
         features_path = "./data/model/no_ephemeris_features.txt"
         params_path = "./data/model/no_epehemeris_params.pkl"
 
+        print("Creating model without ephemeris features")
+
     ######################################################################################
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
