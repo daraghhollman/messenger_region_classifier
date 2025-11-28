@@ -78,7 +78,7 @@ new_crossings["Time"] = pd.to_datetime(new_crossings["Time"])
 
 # We want to look at a specific crossing group
 # 43, 47, 52
-crossing_group = crossing_groups[52]
+crossing_group = crossing_groups[43]
 
 # Load data around the interval
 interval_buffer = dt.timedelta(minutes=10)
