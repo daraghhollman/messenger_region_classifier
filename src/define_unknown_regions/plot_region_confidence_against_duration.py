@@ -28,7 +28,7 @@ fit = {
     "All": {"Colour": colours["black"]},
     "Solar Wind": {"Colour": colours["yellow"]},
     "Magnetosheath": {"Colour": colours["orange"]},
-    "Magnetosphere": {"Colour": colours["blue"]},
+    "Magnetosphere": {"Colour": colours["light blue"]},
 }
 
 # fig, axes = plt.subplots(1, 3)
