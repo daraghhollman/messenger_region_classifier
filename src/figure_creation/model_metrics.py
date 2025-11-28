@@ -12,20 +12,34 @@ import pandas as pd
 import seaborn as sns
 from hermpy.plotting import wong_colours as colours
 
+USE_NO_EPHEMERIS_FEATURES = False
+
 
 def main():
 
+    if not USE_NO_EPHEMERIS_FEATURES:
+        features_path = "./data/model/selected_features.txt"
+        feature_importances_path = "./data/model/feature_importances.csv"
+        confusion_matrices_path = "./data/model/confusion_matrices.pkl"
+        figure_output_path = "figures/model_results.pdf"
+
+    else:
+        features_path = "./data/model/no_ephemeris_features.txt"
+        feature_importances_path = "./data/model/no_ephemeris_feature_importances.csv"
+        confusion_matrices_path = "./data/model/confusion_matrices_no_ephemeris.pkl"
+        figure_output_path = "figures/no_ephemeris_model_results.pdf"
+
     # First we load the feature importance data, and the confusion matrix data
-    with open("./data/model/confusion_matrices.pkl", "rb") as f:
+    with open(confusion_matrices_path, "rb") as f:
         confusion_matrices: list[np.typing.ArrayLike] = pickle.load(f)
 
     # This is a csv with 30 rows, corresponding to each model, and 20 columns,
     # corresponding to each feature.
-    feature_importances = pd.read_csv("./data/model/feature_importances.csv").to_numpy()
+    feature_importances = pd.read_csv(feature_importances_path).to_numpy()
 
     # Load selected features from ./src/select_features.py
     feature_names = []
-    with open("./data/model/selected_features.txt", "r") as f:
+    with open(features_path, "r") as f:
         for line in f:
             feature_names.append(line.strip())
 
@@ -39,7 +53,7 @@ def main():
     mean_importances = mean_importances[sorted_indices]  # Reorder mean values
     feature_names = [feature_names[i] for i in sorted_indices]  # Reorder feature names
 
-    y_positions = np.arange(len(feature_names))
+    # y_positions = np.arange(len(feature_names))
     # axes[0].barh(y_positions + 1, mean_importances, color="white", edgecolor="black")
 
     box_plots = axes[0].boxplot(
@@ -71,7 +85,7 @@ def main():
         cmap="viridis",
         cbar=True,
         linecolor="black",
-        linewidths=2,
+        linewidths=1,
         xticklabels=["Solar Wind", "Magnetosheath", "Magnetosphere"],
         yticklabels=["Solar Wind", "Magnetosheath", "Magnetosphere"],
         norm=matplotlib.colors.LogNorm(),
@@ -111,7 +125,7 @@ def main():
         ax.text(-0.05, 1.05, labels[i], transform=ax.transAxes, fontsize="large")
 
     plt.tight_layout()
-    plt.savefig("figures/model_results.pdf", format="pdf")
+    plt.savefig(figure_output_path, format="pdf")
 
 
 # Simon's beautiful boxkey

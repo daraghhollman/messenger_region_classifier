@@ -3,7 +3,9 @@ A figure applying the model to an entire orbit
 """
 
 import datetime as dt
+import os
 import pathlib
+import pickle
 import sys
 
 import hermpy.boundaries
@@ -14,8 +16,10 @@ import matplotlib.dates
 import matplotlib.patheffects
 import matplotlib.pyplot as plt
 
-start_time = dt.datetime(2013, 6, 1, 12)
+FORCE_UPDATE = False
+CACHE_PATH = "./data/cache/full_orbit_plot_model_output.pkl"
 
+start_time = dt.datetime(2013, 6, 1, 12)
 orbit_length = dt.timedelta(hours=8)
 end_time = start_time + orbit_length
 
@@ -33,18 +37,27 @@ data = hermpy.mag.Load_Between_Dates(
     no_dirs=True,
 )
 
-# Load model and apply to data
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-from apply_model import get_magnetospheric_region
 
-classification_times, region_probabilities = get_magnetospheric_region(
-    start_time,
-    end_time,
-    model_path=str(
-        pathlib.Path(__file__).parent.parent.parent
-        / "data/model/messenger_region_classifier.pkl"
-    ),
-)
+# Load model and apply to data
+if not os.path.isfile(CACHE_PATH) or FORCE_UPDATE:
+    sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
+    from apply_model import get_magnetospheric_region
+
+    classification_times, region_probabilities = get_magnetospheric_region(
+        start_time,
+        end_time,
+        model_path=str(
+            pathlib.Path(__file__).parent.parent.parent
+            / "data/model/messenger_region_classifier.pkl"
+        ),
+    )
+
+    with open(CACHE_PATH, "wb") as file:
+        pickle.dump((classification_times, region_probabilities), file)
+
+else:
+    with open(CACHE_PATH, "rb") as file:
+        classification_times, region_probabilities = pickle.load(file)
 
 
 # Create figure
@@ -95,10 +108,14 @@ proba_ax.set_ylabel("Region Probability")
 
 # We also want to plot the Philpott intervals on this for context
 intervals = hermpy.boundaries.Load_Crossings("./data/philpott_2020_crossing_list.xlsx")
+bow_shock_intervals = intervals.loc[intervals["Type"].str.contains("BS")]
+magnetopause_intervals = intervals.loc[intervals["Type"].str.contains("MP")]
 
-hermpy.boundaries.Plot_Crossing_Intervals(mag_ax, start_time, end_time, intervals)
 hermpy.boundaries.Plot_Crossing_Intervals(
-    proba_ax, start_time, end_time, intervals, label=False
+    mag_ax, start_time, end_time, bow_shock_intervals, color="black", height=0.8
+)
+hermpy.boundaries.Plot_Crossing_Intervals(
+    mag_ax, start_time, end_time, magnetopause_intervals, color="black"
 )
 
 for ax in axes:
