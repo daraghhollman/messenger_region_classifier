@@ -7,6 +7,7 @@ spatial bin.
 import datetime as dt
 import os
 
+import hermpy.plotting
 import hermpy.trajectory
 import hermpy.utils
 import matplotlib.pyplot as plt
@@ -34,7 +35,7 @@ def main():
 
 def plot_maps():
 
-    fig, axes = plt.subplots(2, 2, figsize=(8, 8), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 2, figsize=(7, 6), sharex=True, sharey=True)
     unflattend_axes = axes
     axes = axes.flatten()
 
@@ -52,6 +53,23 @@ def plot_maps():
         )
 
         axes[i].set_aspect("equal")
+        axes[i].set_xlim(-5, 5)
+        axes[i].set_ylim(0, 10)
+        hermpy.plotting.Plot_Circle(
+            axes[i],
+            (0, +hermpy.utils.Constants.DIPOLE_OFFSET_RADII),
+            shade_half=False,
+            facecolor="None",
+            edgecolor="black",
+        )
+        hermpy.plotting.Plot_Circle(
+            axes[i],
+            (0, -hermpy.utils.Constants.DIPOLE_OFFSET_RADII),
+            shade_half=False,
+            facecolor="None",
+            edgecolor="black",
+        )
+        hermpy.plotting.Plot_Magnetospheric_Boundaries(axes[i], zorder=5)
 
         if axes[i] in unflattend_axes[:, 0]:
             axes[i].set_ylabel(
