@@ -1,4 +1,5 @@
 import kneed
+import matplotlib.patheffects
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -79,12 +80,19 @@ fig.colorbar(hist, ax=ax, label="# Regions")
 x_range = np.linspace(1, regions["Duration"].max(), 1000)
 for key, values in fit.items():
 
+    print(key)
+    print(values)
+
     ax.plot(
         x_range,
         fit_function(x_range, *values["Params"]),
         color=values["Colour"],
         lw=4 if key == "All" else 2,
         label=f"Least squares fit (Region: {key})",
+        path_effects=[  # Add a black outline to the line
+            matplotlib.patheffects.Stroke(linewidth=3, foreground="k"),
+            matplotlib.patheffects.Normal(),
+        ],
     )
 
 # Find knee point
