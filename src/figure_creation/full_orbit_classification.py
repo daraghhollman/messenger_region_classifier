@@ -118,6 +118,8 @@ hermpy.boundaries.Plot_Crossing_Intervals(
     mag_ax, start_time, end_time, magnetopause_intervals, color="black"
 )
 
+hermpy.plotting.Add_Tick_Ephemeris(proba_ax)
+
 for ax in axes:
     ax.margins(x=0)
 
