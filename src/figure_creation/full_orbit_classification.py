@@ -6,6 +6,7 @@ import datetime as dt
 import pathlib
 import sys
 
+import hermpy.boundaries
 import hermpy.mag
 import hermpy.plotting
 import hermpy.utils
@@ -91,6 +92,14 @@ proba_ax.xaxis.set_major_locator(
 )  # Ticks every second hour
 proba_ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%Y-%m-%d\n%H:%M"))
 proba_ax.set_ylabel("Region Probability")
+
+# We also want to plot the Philpott intervals on this for context
+intervals = hermpy.boundaries.Load_Crossings("./data/philpott_2020_crossing_list.xlsx")
+
+hermpy.boundaries.Plot_Crossing_Intervals(mag_ax, start_time, end_time, intervals)
+hermpy.boundaries.Plot_Crossing_Intervals(
+    proba_ax, start_time, end_time, intervals, label=False
+)
 
 for ax in axes:
     ax.margins(x=0)
