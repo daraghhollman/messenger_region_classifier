@@ -71,12 +71,20 @@ def main():
         cmap="viridis",
         cbar=True,
         linecolor="black",
+        linewidths=2,
         xticklabels=["Solar Wind", "Magnetosheath", "Magnetosphere"],
         yticklabels=["Solar Wind", "Magnetosheath", "Magnetosphere"],
         norm=matplotlib.colors.LogNorm(),
         square=True,
         ax=axes[1],
     )
+
+    # Ensure 0 values are still displayed
+    for text, value in zip(heatmap.texts, avg_confusion_matrix.flatten()):
+        if value == 0:
+            text.set_color("black")
+        else:
+            continue
 
     axes[1].set_xlabel("Predicted Label")
     axes[1].set_ylabel("True Label")
