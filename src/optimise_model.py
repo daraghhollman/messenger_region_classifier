@@ -25,6 +25,14 @@ else:
 
 def main():
 
+    if not USE_NO_EPHEMERIS_FEATURES:
+        features_path = "./data/model/selected_features.txt"
+        params_path = "./data/model/best_model_params.pkl"
+
+    else:
+        features_path = "./data/model/no_ephemeris_features.txt"
+        params_path = "./data/model/no_epehemeris_params.pkl"
+
     ######################################################################################
     #                          LOADING & VALIDATING DATA                                 #
     ######################################################################################
@@ -39,14 +47,7 @@ def main():
 
     # Load selected features from ./src/select_features.py
     features = []
-    with open(
-        (
-            "./data/model/selected_features.txt"
-            if not USE_NO_EPHEMERIS_FEATURES
-            else "./data/model/no_ephemeris_features.txt"
-        ),
-        "r",
-    ) as f:
+    with open(features_path, "r") as f:
         for line in f:
             features.append(line.strip())
 
@@ -99,7 +100,7 @@ def main():
     print(study.best_params)
 
     # Save model params to be loaded by create_model.py
-    with open("./data/model/best_model_params.pkl", "wb") as f:
+    with open(params_path, "wb") as f:
         params = study.best_params
         params.update(
             {

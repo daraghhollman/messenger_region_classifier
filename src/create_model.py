@@ -14,11 +14,30 @@ from tqdm import tqdm
 
 from load_data import load_reduced_data
 
+USE_NO_EPHEMERIS_FEATURES = False
 SEED = 1785
 n_cores = max(multiprocessing.cpu_count() - 1, 1)
 
 
 def main():
+
+    if not USE_NO_EPHEMERIS_FEATURES:
+        features_path = "./data/model/selected_features.txt"
+        params_path = "./data/model/best_model_params.pkl"
+        feature_importance_output = "./data/model/feature_importances.csv"
+        model_output_path = "./data/model/messenger_region_classifier.pkl"
+        all_models_path = "./data/model/all_models.pkl"
+        confusion_matrices_path = "./data/model/confusion_matrices.pkl"
+        performance_metrics_path = "./data/model/performance_metrics.csv"
+
+    else:
+        features_path = "./data/model/no_ephemeris_features.txt"
+        params_path = "./data/model/no_epehemeris_params.pkl"
+        feature_importance_output = "./data/model/no_ephemeris_feature_importances.csv"
+        model_output_path = "./data/model/messenger_region_classifier_no_ephemeris.pkl"
+        all_models_path = "./data/model/all_models_no_ephemeris.pkl"
+        confusion_matrices_path = "./data/model/confusion_matrices_no_ephemeris.pkl"
+        performance_metrics_path = "./data/model/performance_metrics_no_ephemeris.csv"
 
     ######################################################################################
     #                          LOADING & VALIDATING DATA                                 #
@@ -32,7 +51,7 @@ def main():
 
     # Load selected features from ./src/select_features.py
     features = []
-    with open("./data/model/selected_features.txt", "r") as f:
+    with open(features_path, "r") as f:
         for line in f:
             features.append(line.strip())
 
@@ -45,7 +64,7 @@ def main():
     testing_y = testing_data["Label"]
 
     # Load best model parameters from file. Generated with ./src/optimise_model.py
-    with open("./data/model/best_model_params.pkl", "rb") as f:
+    with open(params_path, "rb") as f:
         model_params: dict = pickle.load(f)
 
     num_models = 30
@@ -94,22 +113,22 @@ def main():
     # Save each model's feature importances for later visualisation
     pd.DataFrame(
         model_data.pop("Feature Importances"), columns=np.array(features)
-    ).to_csv("./data/model/feature_importances.csv", index=False)
+    ).to_csv(feature_importance_output, index=False)
 
     # Pickle best model for further use
     best_model = model_data["Model"][np.argmax(model_data["OOB Score"])]
-    with open("./data/model/messenger_region_classifier.pkl", "wb") as f:
+    with open(model_output_path, "wb") as f:
         pickle.dump(best_model, f)
 
     # Pickle all model objects
-    with open("./data/model/all_models.pkl", "wb") as f:
+    with open(all_models_path, "wb") as f:
         pickle.dump(model_data.pop("Model"), f)
 
     # Pickle all confusion matrix arrays
-    with open("./data/model/confusion_matrices.pkl", "wb") as f:
+    with open(confusion_matrices_path, "wb") as f:
         pickle.dump(model_data.pop("Confusion Matrices"), f)
 
-    pd.DataFrame(model_data).to_csv("./data/model/performance_metrics.csv")
+    pd.DataFrame(model_data).to_csv(performance_metrics_path)
 
     print(
         f"Average OOB Score: {np.mean(model_data["OOB Score"]):.4f} +/- {np.std(model_data["OOB Score"]):.4f}"
