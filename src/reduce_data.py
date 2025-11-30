@@ -193,7 +193,7 @@ def get_random_sample(
 
 def get_sample_features(data):
 
-    components = ["|B|", "Bx", "By", "Bz"]
+    components = ["|B|", "Bx'", "By'", "Bz'"]
 
     # Compute per-component stats as dicts
     mean = {f"Mean {c}": np.mean(data[c]) for c in components}

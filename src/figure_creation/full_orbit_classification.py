@@ -65,7 +65,7 @@ else:
 fig, axes = plt.subplots(2, 1, figsize=(11.7, 8.3), sharex=True)
 mag_ax, proba_ax = axes
 
-to_plot = ["|B|", "Bx", "By", "Bz"]
+to_plot = ["|B|", "Bx'", "By'", "Bz'"]
 mag_colours = [
     hermpy.plotting.wong_colours[c] for c in ["black", "red", "green", "blue"]
 ]

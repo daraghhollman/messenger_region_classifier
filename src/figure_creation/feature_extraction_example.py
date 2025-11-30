@@ -97,7 +97,7 @@ data_samples["Left"]["ax"] = left_distribution_ax
 data_samples["Right"]["ax"] = right_distribution_ax
 
 # Time Series Plot
-components = ["|B|", "Bx", "By", "Bz"]
+components = ["|B|", "Bx'", "By'", "Bz'"]
 mag_colours = [
     hermpy.plotting.wong_colours[c] for c in ["black", "red", "green", "blue"]
 ]

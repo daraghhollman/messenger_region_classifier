@@ -35,7 +35,7 @@ mag_colours = [
     colours["green"],
     colours["blue"],
 ]
-for i, component in enumerate(["|B|", "Bx", "By", "Bz"]):
+for i, component in enumerate(["|B|", "Bx'", "By'", "Bz'"]):
     mag_ax.plot(data["date"], data[component], color=mag_colours[i], label=component)
 
 probability_colours = [
