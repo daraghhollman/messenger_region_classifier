@@ -193,14 +193,29 @@ def get_random_sample(
 
 def get_sample_features(data):
 
-    components = ["|B|", "Bx", "By", "Bz"]
+    component_keys = ["|B|", "Bx'", "By'", "Bz'"]
+    component_labels = ["|B|", "Bx", "By", "Bz"]
 
     # Compute per-component stats as dicts
-    mean = {f"Mean {c}": np.mean(data[c]) for c in components}
-    median = {f"Median {c}": np.median(data[c]) for c in components}
-    std = {f"Standard Deviation {c}": np.std(data[c]) for c in components}
-    skew = {f"Skew {c}": scipy.stats.skew(data[c]) for c in components}
-    kurtosis = {f"Kurtosis {c}": scipy.stats.kurtosis(data[c]) for c in components}
+    mean = {
+        f"Mean {l}": np.mean(data[c]) for c, l in zip(component_keys, component_labels)
+    }
+    median = {
+        f"Median {l}": np.median(data[c])
+        for c, l in zip(component_keys, component_labels)
+    }
+    std = {
+        f"Standard Deviation {l}": np.std(data[c])
+        for c, l in zip(component_keys, component_labels)
+    }
+    skew = {
+        f"Skew {l}": scipy.stats.skew(data[c])
+        for c, l in zip(component_keys, component_labels)
+    }
+    kurtosis = {
+        f"Kurtosis {l}": scipy.stats.kurtosis(data[c])
+        for c, l in zip(component_keys, component_labels)
+    }
 
     data_middle = data.iloc[round(len(data) / 2)]
 
@@ -219,14 +234,12 @@ def get_sample_features(data):
         et = spice.str2et(data_middle["date"].strftime("%Y-%m-%d %H:%M:%S"))
         mercury_position, _ = spice.spkpos("MERCURY", et, "J2000", "NONE", "SUN")
 
-        # It would be quicker to calculate the heliocentric distance for all
-        # samples at the end
-        # heliocentric_distance = np.sqrt(
-        #     mercury_position[0] ** 2
-        #     + mercury_position[1] ** 2
-        #     + mercury_position[2] ** 2
-        # )
-        # heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
+        heliocentric_distance = np.sqrt(
+            mercury_position[0] ** 2
+            + mercury_position[1] ** 2
+            + mercury_position[2] ** 2
+        )
+        heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
 
     return {
         # Time identifiers
@@ -239,7 +252,7 @@ def get_sample_features(data):
         **skew,
         **kurtosis,
         # Ephemeris
-        # "Heliocentric Distance (AU)": heliocentric_distance,
+        "Heliocentric Distance (AU)": heliocentric_distance,
         "Local Time (hrs)": local_time,
         "Latitude (deg.)": latitude,
         "Magnetic Latitude (deg.)": magnetic_latitude,

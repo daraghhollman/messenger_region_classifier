@@ -80,7 +80,7 @@ def plot_maps():
             axes[i].set_xlabel(r"$X_{\rm MSM'} \quad \left[ \text{R}_\text{M} \right]$")
 
     cbar = fig.colorbar(
-        mesh, ax=axes, label="Fraction of Regions of Type", location="right"
+        mesh, ax=axes, label="Fraction of Classifications of Type", location="right"
     )
 
     return fig

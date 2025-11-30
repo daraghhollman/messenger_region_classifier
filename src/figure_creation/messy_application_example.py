@@ -112,7 +112,7 @@ fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 11))
 
 # Plot the magnetic field components
 for component, component_label, colour in zip(
-    ["Bx", "By", "Bz"], ["$B_x$", "$B_y$", "$B_z$"], ["red", "green", "blue"]
+    ["Bx'", "By'", "Bz'"], ["$B_x$", "$B_y$", "$B_z$"], ["red", "green", "blue"]
 ):
     components_axis.plot(
         messenger_data["date"],
