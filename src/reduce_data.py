@@ -191,7 +191,7 @@ def get_random_sample(
     return sample_features
 
 
-def get_sample_features(data):
+def get_sample_features(data, include_heliocentric_distance: bool = True):
 
     component_keys = ["|B|", "Bx'", "By'", "Bz'"]
     component_labels = ["|B|", "Bx", "By", "Bz"]
@@ -230,37 +230,59 @@ def get_sample_features(data):
     latitude = hermpy.trajectory.Latitude(sample_middle_position)
     magnetic_latitude = hermpy.trajectory.Magnetic_Latitude(sample_middle_position)
 
-    with spice.KernelPool(hermpy.utils.User.METAKERNEL):
-        et = spice.str2et(data_middle["date"].strftime("%Y-%m-%d %H:%M:%S"))
-        mercury_position, _ = spice.spkpos("MERCURY", et, "J2000", "NONE", "SUN")
+    if include_heliocentric_distance:
+        with spice.KernelPool(hermpy.utils.User.METAKERNEL):
+            et = spice.str2et(data_middle["date"].strftime("%Y-%m-%d %H:%M:%S"))
+            mercury_position, _ = spice.spkpos("MERCURY", et, "J2000", "NONE", "SUN")
 
-        heliocentric_distance = np.sqrt(
-            mercury_position[0] ** 2
-            + mercury_position[1] ** 2
-            + mercury_position[2] ** 2
-        )
-        heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
+            heliocentric_distance = np.sqrt(
+                mercury_position[0] ** 2
+                + mercury_position[1] ** 2
+                + mercury_position[2] ** 2
+            )
+            heliocentric_distance = hermpy.utils.Constants.KM_TO_AU(heliocentric_distance)
 
-    return {
-        # Time identifiers
-        "Sample Start": data["date"].iloc[0],
-        "Sample End": data["date"].iloc[-1],
-        # Magnetic field statistics
-        **mean,
-        **median,
-        **std,
-        **skew,
-        **kurtosis,
-        # Ephemeris
-        "Heliocentric Distance (AU)": heliocentric_distance,
-        "Local Time (hrs)": local_time,
-        "Latitude (deg.)": latitude,
-        "Magnetic Latitude (deg.)": magnetic_latitude,
-        "Mercury Distance (radii)": planetary_distance,
-        "X MSM' (radii)": data_middle["X MSM' (radii)"],
-        "Y MSM' (radii)": data_middle["Y MSM' (radii)"],
-        "Z MSM' (radii)": data_middle["Z MSM' (radii)"],
-    }
+        return {
+            # Time identifiers
+            "Sample Start": data["date"].iloc[0],
+            "Sample End": data["date"].iloc[-1],
+            # Magnetic field statistics
+            **mean,
+            **median,
+            **std,
+            **skew,
+            **kurtosis,
+            # Ephemeris
+            "Heliocentric Distance (AU)": heliocentric_distance,
+            "Local Time (hrs)": local_time,
+            "Latitude (deg.)": latitude,
+            "Magnetic Latitude (deg.)": magnetic_latitude,
+            "Mercury Distance (radii)": planetary_distance,
+            "X MSM' (radii)": data_middle["X MSM' (radii)"],
+            "Y MSM' (radii)": data_middle["Y MSM' (radii)"],
+            "Z MSM' (radii)": data_middle["Z MSM' (radii)"],
+        }
+
+    else:
+        return {
+            # Time identifiers
+            "Sample Start": data["date"].iloc[0],
+            "Sample End": data["date"].iloc[-1],
+            # Magnetic field statistics
+            **mean,
+            **median,
+            **std,
+            **skew,
+            **kurtosis,
+            # Ephemeris
+            "Local Time (hrs)": local_time,
+            "Latitude (deg.)": latitude,
+            "Magnetic Latitude (deg.)": magnetic_latitude,
+            "Mercury Distance (radii)": planetary_distance,
+            "X MSM' (radii)": data_middle["X MSM' (radii)"],
+            "Y MSM' (radii)": data_middle["Y MSM' (radii)"],
+            "Z MSM' (radii)": data_middle["Z MSM' (radii)"],
+        }
 
 
 def process_crossing_interval(inputs):

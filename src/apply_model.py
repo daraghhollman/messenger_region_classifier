@@ -127,7 +127,7 @@ def get_window_features(time_windows, data):
     if len(window_data) == 0:
         return None
 
-    return get_sample_features(window_data)
+    return get_sample_features(window_data, include_heliocentric_distance=False)
 
 
 if __name__ == "__main__":
