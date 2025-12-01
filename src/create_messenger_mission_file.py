@@ -31,6 +31,8 @@ def save_mission(path: str, days_per_chunk=60):
                 end_date,
                 strip=True,
                 aberrate=True,
+                multiprocess=True,
+                no_dirs=True,
             )
             hermpy.mag.Remove_Spikes(data_chunk)
 
