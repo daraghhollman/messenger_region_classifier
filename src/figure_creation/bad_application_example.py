@@ -100,7 +100,7 @@ else:
 # print(f"Start: {start}")
 # print(f"End: {end}")
 messenger_data = mag.Load_Between_Dates(
-    "./data/messenger/one_minute_avg", start, end, no_dirs=True
+    "./data/messenger/one_second_avg", start, end, no_dirs=True
 )
 
 # Get model_ouput between these times

@@ -26,7 +26,7 @@ def save_mission(path: str, days_per_chunk=60):
             mission_start, mission_end, days_per_chunk
         ):  # Process 30 days at a time
             data_chunk = hermpy.mag.Load_Between_Dates(
-                "./data/messenger/one_minute_avg/",
+                "./data/messenger/one_second_avg/",
                 start_date,
                 end_date,
                 strip=True,
