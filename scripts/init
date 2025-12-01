@@ -2,7 +2,7 @@
 
 # Initialise directories
 DATA_DIR_FULL_CADENCE="./data/messenger/full_cadence/"
-DATA_DIR_1S="./data/messenger/one_minute_avg/"
+DATA_DIR_1S="./data/messenger/one_second_avg/"
 mkdir -p $DATA_DIR_FULL_CADENCE
 mkdir -p $DATA_DIR_1S
 
