@@ -36,3 +36,6 @@ wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2012/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2013/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2014/"
 wget -r -q --show-progress -np -nH -nd -A '*.TAB' -P $DATA_DIR "$DATA_URL/2015/"
+
+# For simplicity, we want to create a full mission file with the 1 second data
+uv run python src/create_messenger_mission_file.py
