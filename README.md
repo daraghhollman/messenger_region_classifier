@@ -13,7 +13,7 @@ The model was applied near boundary crossing intervals throughout the MESSENGER 
 **README**
 We would like to highlight some caveats of using this list. As discussed in the publication, we suggest that this output crossing list primarily be used for statistical studies, whereas for individual event studies, we recommend manual evaluation of the raw model output.
 
-Further, due to prior labelling of boundaries, and the automated nature of this work, there are times where you may wish to exclude / inspect manually. When determining a point in time as belonging to a given region based on a crossing, it is paramount that both the **crossing before and after** be referenced. For more detail, please find the guide on handling the crossing list [below](##Quicklook)
+Further, due to prior labelling of boundaries, and the automated nature of this work, there are times where you may wish to exclude / inspect manually. When determining a point in time as belonging to a given region based on a crossing, it is paramount that both the **crossing before and after** be referenced. For more detail, please find the guide on handling the crossing list [below](#quicklook)
 
 
 ## Quicklook
