@@ -83,7 +83,7 @@ def main():
         new_crossing_labels.append(region_transition_map[label_before][label_after])
 
     new_crossings = pd.DataFrame(
-        {"Times": new_crossing_times, "Label": new_crossing_labels}
+        {"Time": new_crossing_times, "Label": new_crossing_labels}
     )
 
     # Count occurrences of each crossing type
