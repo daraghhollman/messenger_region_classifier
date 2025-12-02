@@ -95,7 +95,7 @@ def main():
 
     print(len(new_crossings))
 
-    new_crossings.to_csv("./data/hollman_2025_crossing_list.csv")
+    new_crossings.to_csv("./data/hollman_2025_crossing_list.csv", index=False)
 
 
 if __name__ == "__main__":
