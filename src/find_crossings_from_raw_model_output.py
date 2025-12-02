@@ -247,7 +247,7 @@ for crossing_group in tqdm(
 
     region_data.loc[
         ~(
-            (region_data["Duration (seconds)"] >= 138)
+            (region_data["Duration (seconds)"] >= 139)
             | (region_data["Confidence"] > 0.8)
         ),
         "Label",
