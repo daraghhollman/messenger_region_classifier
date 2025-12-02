@@ -1,4 +1,5 @@
 # A MESSENGER Magnetospheric Region Classifier
+[![DOI](https://zenodo.org/badge/1082496652.svg)](https://doi.org/10.5281/zenodo.17790264)
 
 Automatically classify whether MESSENGER was in the solar wind, magnetosheath,
 or magnetosphere with > 98% accuracy based on magnetometer and ephemeris data
