@@ -9,7 +9,7 @@ See publication: [Hollman et al. (preprint, in review)](https://essopenarchive.o
 
 ## Usage
 
-The model was applied near boundary crossing intervals throughout the MESSENGER mission. Both the raw model output and the post-processed crossing list are available: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15731194.svg)](https://doi.org/10.5281/zenodo.15706295)
+The model was applied near boundary crossing intervals throughout the MESSENGER mission. Both the raw model output and the post-processed crossing list are available: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15706295.svg)](https://doi.org/10.5281/zenodo.15706295)
 
 **Important:** We would like to highlight some caveats of using this list. As discussed in the publication, we suggest that this output crossing list primarily be used for statistical studies, whereas for individual event studies, we recommend manual evaluation of the raw model output.
 
