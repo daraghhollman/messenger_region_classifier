@@ -24,7 +24,7 @@ You can quickly test out this model with the Python notebook included below:
 
 Additionally, please see below for a guide on working with the outputs of this work:
 * Working with the raw model output: [![Open in colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/daraghhollman/messenger_region_classifier/blob/main/examples/raw_model_output_handelling.ipynb)
-* Working with the crossing list: [![Open in colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/daraghhollman/messenger_region_classifier/blob/main/examples/crossing_list_handelling.ipynb)
+* Working with the crossing list: [![Open in colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/daraghhollman/messenger_region_classifier/blob/main/examples/crossing_list_handling.ipynb)
 
 
 ## Reproduce this work
