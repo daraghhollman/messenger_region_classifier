@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-hermpy = { git = "https://github.com/daraghhollman/hermpy" }
+hermpy = { git = "https://github.com/daraghhollman/hermpy-pre-0.1" }
 
 [dependency-groups]
 dev = [
