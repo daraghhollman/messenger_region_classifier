@@ -5,7 +5,7 @@ Automatically classify whether MESSENGER was in the solar wind, magnetosheath,
 or magnetosphere with > 98% accuracy based on magnetometer and ephemeris data
 only.
 
-See publication: [Hollman et al. (preprint, in review)](https://essopenarchive.org/users/867402/articles/1320325-identifying-messenger-magnetospheric-boundary-crossings-using-a-random-forest-region-classifier)
+See publication: [Hollman et al. (2026)](https://doi.org/10.1029/2025JH000921)
 
 ## Usage
 
