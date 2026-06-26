@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
 # We need a SPICE metakernel to pull ephemeris easily
-echo "Cloning mjrutala/AutoMeta to pull SPICE kernels"
-git clone 'https://github.com/mjrutala/AutoMeta.git' ./data/autometa
+echo "Cloning daraghhollman/AutoMeta to pull SPICE kernels"
+git clone 'https://github.com/daraghhollman/AutoMeta.git' ./data/autometa
 
 echo "Downloading required SPICE files"
 if command -v uv > /dev/null; then

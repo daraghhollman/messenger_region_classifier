@@ -89,6 +89,7 @@ These are then post-processed with the following:
 ```shell
 uv run python src/postprocessing/1_ensure_start_and_end.py
 uv run python src/postprocessing/2_include_hidden_crossings.py
+uv run python src/postprocessing/3_add_travel_directions.py
 ```
 
 ## Figures
